@@ -1,8 +1,8 @@
 package ru.rofleksey.refl.lang.node;
 
-import org.jetbrains.annotations.NotNull;
+
 import ru.rofleksey.refl.lang.error.EvalError;
-import ru.rofleksey.refl.lang.value.Refl;
+import ru.rofleksey.refl.lang.value.ReflValue;
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 
@@ -18,8 +18,8 @@ public class WhileNode implements Node {
     }
 
     @Override
-    public @NotNull Value evaluate(ReflContext ctx) throws EvalError {
-        Value result = Refl.INSTANCE;
+    public  Value evaluate(ReflContext ctx) throws EvalError {
+        Value result = ReflValue.INSTANCE;
 
         while (condition.evaluate(ctx).isTruthy()) {
             for (var node : body) {
@@ -28,5 +28,10 @@ public class WhileNode implements Node {
         }
 
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "while " + condition.toString() + ": " + body.toString();
     }
 }

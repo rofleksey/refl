@@ -2,63 +2,64 @@ package ru.rofleksey.refl.parser;
 
 import ru.rofleksey.refl.lang.node.*;
 import ru.rofleksey.refl.lang.value.NumberValue;
-import ru.rofleksey.refl.lang.value.Refl;
+import ru.rofleksey.refl.lang.value.ReflValue;
 import ru.rofleksey.refl.lang.value.StringValue;
 import ru.rofleksey.refl.lexer.Lexem;
 import ru.rofleksey.refl.lexer.LexemType;
 import ru.rofleksey.refl.lexer.lexem.NumberLexem;
 import ru.rofleksey.refl.lexer.lexem.StringLexem;
-import ru.rofleksey.refl.lexer.lexem.VarLiteral;
-import ru.rofleksey.refl.util.Pair;
+import ru.rofleksey.refl.lexer.lexem.VarLexem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 // http://marvin.cs.uidaho.edu/Teaching/CS445/c-Grammar.pdf
 // https://cyberzhg.github.io/toolbox/cfg2ll
 // https://www.cs.princeton.edu/courses/archive/spring22/cos320/LL1/index.html
 
 /*
-  declList ::= decl ; declList'
+    declList ::= decl ; declList'
       decl ::= if and : declList end
-        decl    ::= while and : declList end
-        decl    ::= s = and
+         decl   ::= while and : declList end
+         decl   ::= s = and
          decl   ::= and
        and ::= orExp and'
      orExp ::= notExp orExp'
     notExp ::= rel
-        notExp    ::= not rel
+         notExp   ::= not rel
        rel ::= add rel'
        add ::= mul add''
        mul ::= unary mul'
      unary ::= term
         unary    ::= - term
       term ::= const
-         term   ::= ( and )
-        term    ::= call
+        term    ::= s
+        term    ::= ( and )
+         term   ::= call
       call ::= s ( args )
       args ::= argsList
         args    ::= ϵ
   argsList ::= s argsList''
         argsList    ::= const argsList''
       rel' ::= ϵ
-       rel'    ::= < add
+        rel'    ::= < add
       add' ::= + mul
-       add'     ::= - mul
+        add'    ::= - mul
  argsList' ::= s
-      argsList'      ::= const
+       argsList'     ::= const
  declList' ::= decl ; declList'
        declList'     ::= ϵ
       and' ::= & orExp and'
-        and'     ::= ϵ
+        and'    ::= ϵ
     orExp' ::= or notExp orExp'
-       orExp'     ::= ϵ
+      orExp'      ::= ϵ
      add'' ::= add' add''
        add''     ::= ϵ
       mul' ::= * unary mul'
         mul'    ::= ϵ
 argsList'' ::= , argsList' argsList''
-       argsList''     ::= ϵ
+        argsList''    ::= ϵ
 
 
 //
@@ -87,207 +88,259 @@ public class Parser {
 
     private List<Node> parseStart(ParserContext ctx) throws ParserError {
         var result = new ArrayList<Node>();
-        var nodeList = parseDeclList(ctx, result);
+        parseDeclList(ctx, result);
         ctx.consume(LexemType.EOF);
-        return nodeList;
+        return result;
     }
 
-    private List<Node> parseDeclList(ParserContext ctx, List<Node> result) throws ParserError {
+    private void parseDeclList(ParserContext ctx, List<Node> result) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case IF, WHILE, STRING, NUMBER, VARIABLE, REFL, NOT, MINUS, BRACKET_OPEN -> {
+            case IF:
+            case WHILE:
+            case STRING:
+            case NUMBER:
+            case VARIABLE:
+            case REFL:
+            case NOT:
+            case MINUS:
+            case BRACKET_OPEN:
                 var decl = parseDecl(ctx);
                 result.add(decl);
-                var tailList = parseDeclListSlash(ctx, result);
-                result.add(decl);
-                result.addAll(tailList);
-                return result;
-            }
-            default -> throw new UnexpectedLexemError(curLexem.type());
+                ctx.consume(LexemType.SEMICOLON);
+                parseDeclListSlash(ctx, result);
+                return;
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseDecl(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case IF, WHILE -> {
+            case IF:
+            case WHILE:
                 ctx.take();
                 var condition = parseAnd(ctx);
                 ctx.consume(LexemType.COLON);
-                var result = new ArrayList<Node>();
-                var body = parseDeclList(ctx, result);
+                var body = new ArrayList<Node>();
+                parseDeclList(ctx, body);
                 ctx.consume(LexemType.END);
                 if (curLexem.type().equals(LexemType.IF)) {
                     return new IfNode(condition, body);
                 } else {
                     return new WhileNode(condition, body);
                 }
-            }
 
-            case VARIABLE -> {
+            case VARIABLE:
                 if (ctx.lookUp(LexemType.ASSIGN, 1)) {
                     ctx.take();
-                    var variable = ((VarLiteral) curLexem);
+                    var variable = ((VarLexem) curLexem);
                     ctx.take();
                     var exp = parseAnd(ctx);
                     return new AssignNode(variable.name(), exp);
                 }
                 return parseAnd(ctx);
-            }
 
-            case NOT, MINUS, STRING, NUMBER, REFL, BRACKET_OPEN -> {
+            case NOT:
+            case MINUS:
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case BRACKET_OPEN:
                 return parseAnd(ctx);
-            }
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseAnd(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case NOT, MINUS, STRING, NUMBER, REFL, BRACKET_OPEN -> {
+            case NOT:
+            case MINUS:
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case VARIABLE:
+            case BRACKET_OPEN:
                 var first = parseOrExp(ctx);
-                var second = parseAndSlash(ctx);
-                if (second == null) {
-                    return first;
-                }
-                return new AndNode(first, second);
-            }
+                var queue = new ArrayList<NodeWithLexem>();
+                queue.add(new NodeWithLexem(first, null));
+                return parseAndSlash(ctx, queue);
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseOrExp(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case NOT, MINUS, STRING, NUMBER, REFL, BRACKET_OPEN -> {
+            case NOT:
+            case MINUS:
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case VARIABLE:
+            case BRACKET_OPEN:
                 var first = parseNotExp(ctx);
-                var second = parseOrExpSlash(ctx);
-                return new OrNode(first, second);
-            }
+                var queue = new ArrayList<NodeWithLexem>();
+                queue.add(new NodeWithLexem(first, null));
+                return parseOrExpSlash(ctx, queue);
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseNotExp(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case MINUS, STRING, NUMBER, REFL, BRACKET_OPEN -> {
+            case MINUS:
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case VARIABLE:
+            case BRACKET_OPEN:
                 return parseRel(ctx);
-            }
 
-            case NOT -> {
+            case NOT:
                 ctx.take();
                 var node = parseRel(ctx);
                 return new NotNode(node);
-            }
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseRel(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case MINUS, STRING, NUMBER, REFL, BRACKET_OPEN -> {
+            case MINUS:
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case VARIABLE:
+            case BRACKET_OPEN:
                 var first = parseAdd(ctx);
                 var other = parseRelSlash(ctx);
                 if (other == null) {
                     return first;
                 }
-                var predicate = switch (other.second()) {
-                    case LT -> CompareNode.LT;
-                    case GT -> CompareNode.GT;
-                    default -> CompareNode.EQ;
-                };
-                return new CompareNode(predicate, first, other.first());
-            }
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+                Predicate<Double> predicate;
+                if (other.lexemType() == LexemType.LT) {
+                    predicate = CompareNode.LT;
+                } else if (other.lexemType() == LexemType.GT) {
+                    predicate = CompareNode.GT;
+                } else {
+                    predicate = CompareNode.EQ;
+                }
+                return new CompareNode(predicate, first, other.node());
+
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseAdd(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case MINUS, STRING, NUMBER, REFL, BRACKET_OPEN -> {
+            case MINUS:
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case VARIABLE:
+            case BRACKET_OPEN:
                 var first = parseMul(ctx);
-                var second = parseAddDoubleSlash(ctx);
-                return new AddNode(first, second);
-            }
+                var queue = new ArrayList<NodeWithLexem>();
+                queue.add(new NodeWithLexem(first, null));
+                return parseAddDoubleSlash(ctx, queue);
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseMul(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case MINUS, STRING, NUMBER, REFL, BRACKET_OPEN -> {
+            case MINUS:
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case VARIABLE:
+            case BRACKET_OPEN:
                 var first = parseUnary(ctx);
-                var second = parseMulSlash(ctx);
-                if (LexemType.MULTIPLY.equals(second.second())) {
-                    return new MultiplyNode(first, second.first());
+                var queue = new ArrayList<NodeWithLexem>();
+                queue.add(new NodeWithLexem(first, null));
+                var second = parseMulSlash(ctx, queue);
+                if (second == null) {
+                    return first;
                 }
-                return new DivideNode(first, second.first());
-            }
+                return second;
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseUnary(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case STRING, NUMBER, REFL, BRACKET_OPEN -> {
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case VARIABLE:
+            case BRACKET_OPEN:
                 return parseTerm(ctx);
-            }
 
-            case MINUS -> {
+            case MINUS:
                 ctx.take();
                 var node = parseTerm(ctx);
                 return new UnaryMinusNode(node);
-            }
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseTerm(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case STRING -> {
+            case STRING:
                 ctx.take();
                 var str = ((StringLexem) curLexem);
                 return new ConstNode(new StringValue(str.text()));
-            }
 
-            case NUMBER -> {
+            case NUMBER:
                 ctx.take();
                 var num = ((NumberLexem) curLexem);
                 return new ConstNode(new NumberValue(num.value()));
-            }
 
-            case REFL -> {
+            case REFL:
                 ctx.take();
-                return new ConstNode(Refl.INSTANCE);
-            }
+                return new ConstNode(ReflValue.INSTANCE);
 
-            case BRACKET_OPEN -> {
+            case BRACKET_OPEN:
                 ctx.take();
                 var node = parseAnd(ctx);
                 ctx.consume(LexemType.BRACKET_CLOSE);
                 return node;
-            }
 
-            case VARIABLE -> {
-                return parseCall(ctx);
-            }
+            case VARIABLE:
+                if (ctx.lookUp(LexemType.BRACKET_OPEN, 1)) {
+                    return parseCall(ctx);
+                }
+                ctx.take();
+                var variable = ((VarLexem) curLexem);
+                return new GetVarNode(variable.name());
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
@@ -295,7 +348,7 @@ public class Parser {
         var curLexem = ctx.peek();
         if (curLexem.type() == LexemType.VARIABLE) {
             ctx.take();
-            var variable = ((VarLiteral) curLexem);
+            var variable = ((VarLexem) curLexem);
             ctx.consume(LexemType.BRACKET_OPEN);
             var args = parseArgs(ctx);
             ctx.consume(LexemType.BRACKET_CLOSE);
@@ -307,194 +360,206 @@ public class Parser {
     private List<Node> parseArgs(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case STRING, NUMBER, REFL, VARIABLE -> {
+            case STRING:
+            case NUMBER:
+            case REFL:
+            case VARIABLE:
                 var result = new ArrayList<Node>();
                 return parseArgsList(ctx, result);
-            }
 
-            default -> {
+            default:
                 return List.of();
-            }
         }
     }
 
     private List<Node> parseArgsList(ParserContext ctx, List<Node> result) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case STRING -> {
+            case STRING:
                 ctx.take();
                 var str = ((StringLexem) curLexem);
                 result.add(new ConstNode(new StringValue(str.text())));
                 return parseArgsListDoubleSlash(ctx, result);
-            }
 
-            case NUMBER -> {
+            case NUMBER:
                 ctx.take();
                 var num = ((NumberLexem) curLexem);
                 result.add(new ConstNode(new NumberValue(num.value())));
                 return parseArgsListDoubleSlash(ctx, result);
-            }
 
-            case REFL -> {
+            case REFL:
                 ctx.take();
-                result.add(new ConstNode(Refl.INSTANCE));
+                result.add(new ConstNode(ReflValue.INSTANCE));
                 return parseArgsListDoubleSlash(ctx, result);
-            }
 
-            case VARIABLE -> {
+            case VARIABLE:
                 ctx.take();
-                var variable = ((VarLiteral) curLexem);
+                var variable = ((VarLexem) curLexem);
                 result.add(new GetVarNode(variable.name()));
                 return parseArgsListDoubleSlash(ctx, result);
-            }
 
-            default -> {
+            default:
                 return List.of();
-            }
         }
     }
 
-    private Pair<Node, LexemType> parseRelSlash(ParserContext ctx) throws ParserError {
+    private NodeWithLexem parseRelSlash(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case LT, GT, EQ -> {
+            case LT:
+            case GT:
+            case EQ:
                 ctx.take();
-                return new Pair<>(parseAdd(ctx), curLexem.type());
-            }
+                return new NodeWithLexem(parseAdd(ctx), curLexem.type());
 
-            default -> {
+            default:
                 return null;
-            }
         }
     }
 
-    private Pair<Node, LexemType> parseAddSlash(ParserContext ctx) throws ParserError {
+    private Node parseAddSlash(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case MINUS, PLUS -> {
+            case MINUS:
+            case PLUS:
                 ctx.take();
-                return new Pair<>(parseMul(ctx), curLexem.type());
-            }
+                return parseMul(ctx);
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
     private Node parseArgsListSlash(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case STRING -> {
+            case STRING:
                 ctx.take();
                 var str = ((StringLexem) curLexem);
                 return new ConstNode(new StringValue(str.text()));
-            }
 
-            case NUMBER -> {
+            case NUMBER:
                 ctx.take();
                 var num = ((NumberLexem) curLexem);
                 return new ConstNode(new NumberValue(num.value()));
-            }
 
-            case REFL -> {
+            case REFL:
                 ctx.take();
-                return new ConstNode(Refl.INSTANCE);
-            }
+                return new ConstNode(ReflValue.INSTANCE);
 
-            case VARIABLE -> {
+            case VARIABLE:
                 ctx.take();
-                var variable = ((VarLiteral) curLexem);
+                var variable = ((VarLexem) curLexem);
                 return new GetVarNode(variable.name());
-            }
 
-            default -> throw new UnexpectedLexemError(curLexem.type());
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
         }
     }
 
-    private List<Node> parseDeclListSlash(ParserContext ctx, List<Node> result) throws ParserError {
+    private void parseDeclListSlash(ParserContext ctx, List<Node> result) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case IF, WHILE, STRING, NUMBER, VARIABLE, REFL, NOT, MINUS, BRACKET_OPEN -> {
+            case IF:
+            case WHILE:
+            case STRING:
+            case NUMBER:
+            case VARIABLE:
+            case REFL:
+            case NOT:
+            case MINUS:
+            case BRACKET_OPEN:
                 var decl = parseDecl(ctx);
                 result.add(decl);
-                var tailList = parseDeclListSlash(ctx, result);
-                result.add(decl);
-                result.addAll(tailList);
-                return result;
-            }
-            default -> {
-                return List.of();
-            }
+                ctx.consume(LexemType.SEMICOLON);
+                parseDeclListSlash(ctx, result);
         }
     }
 
-    private Node parseAndSlash(ParserContext ctx) throws ParserError {
+    private Node parseAndSlash(ParserContext ctx, List<NodeWithLexem> queue) throws ParserError {
         var curLexem = ctx.peek();
         if (curLexem.type() == LexemType.AND) {
             ctx.take();
             var right = parseOrExp(ctx);
-            var next = parseAndSlash(ctx);
-            if (next == null) {
-                return right;
-            }
-            return new AndNode(right, next);
+            queue.add(new NodeWithLexem(right, curLexem.type()));
+            return parseAndSlash(ctx, queue);
         }
-        return null;
+        return combineQueue(queue);
     }
 
-    private Node parseOrExpSlash(ParserContext ctx) throws ParserError {
+    private Node parseOrExpSlash(ParserContext ctx, List<NodeWithLexem> queue) throws ParserError {
         var curLexem = ctx.peek();
         if (curLexem.type() == LexemType.OR) {
             ctx.take();
             var right = parseNotExp(ctx);
-            var next = parseOrExpSlash(ctx);
-            if (next == null) {
-                return right;
-            }
-            return new OrNode(right, next);
+            queue.add(new NodeWithLexem(right, curLexem.type()));
+            return parseOrExpSlash(ctx, queue);
         }
-        return null;
+        return combineQueue(queue);
     }
 
-    private Node parseAddDoubleSlash(ParserContext ctx) throws ParserError {
+    private Node combineQueue(List<NodeWithLexem> queue) {
+        if (queue.size() == 1) {
+            return queue.get(0).node();
+        }
+        var result = queue.get(0).node();
+        for (var i = 1; i < queue.size(); i++) {
+            var item = queue.get(i);
+            switch (item.lexemType()) {
+                case PLUS:
+                    result = new AddNode(result, item.node());
+                    break;
+
+                case MINUS:
+                    result = new SubtractNode(result, item.node());
+                    break;
+
+                case MULTIPLY:
+                    result = new MultiplyNode(result, item.node());
+                    break;
+
+                case DIVIDE:
+                    result = new DivideNode(result, item.node());
+                    break;
+
+                case AND:
+                    result = new AndNode(result, item.node());
+                    break;
+
+                case OR:
+                    result = new OrNode(result, item.node());
+                    break;
+            }
+        }
+        return result;
+    }
+
+    private Node parseAddDoubleSlash(ParserContext ctx, List<NodeWithLexem> queue) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case PLUS, MINUS -> {
-                ctx.take();
+            case PLUS:
+            case MINUS:
                 var first = parseAddSlash(ctx);
-                var second = parseAddDoubleSlash(ctx);
-                if (second == null) {
-                    return first.first();
-                }
-                if (first.second() == LexemType.PLUS) {
-                    return new AddNode(first.first(), second);
-                }
-                return new SubtractNode(first.first(), second);
-            }
-            default -> {
-                return null;
-            }
+                queue.add(new NodeWithLexem(first, curLexem.type()));
+                return parseAddDoubleSlash(ctx, queue);
+
+            default:
+                return combineQueue(queue);
         }
     }
 
-    private Pair<Node, LexemType> parseMulSlash(ParserContext ctx) throws ParserError {
+    private Node parseMulSlash(ParserContext ctx, List<NodeWithLexem> queue) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
-            case MULTIPLY, DIVIDE -> {
+            case MULTIPLY:
+            case DIVIDE:
                 ctx.take();
                 var first = parseUnary(ctx);
-                var second = parseMulSlash(ctx);
-                if (second == null) {
-                    return new Pair<>(first, curLexem.type());
-                }
-                if (second.second() == LexemType.MULTIPLY) {
-                    return new Pair<>(new MultiplyNode(first, second.first()), curLexem.type());
-                }
-                return new Pair<>(new DivideNode(first, second.first()), curLexem.type());
-            }
+                queue.add(new NodeWithLexem(first, curLexem.type()));
+                return parseMulSlash(ctx, queue);
 
-            default -> {
-                return null;
-            }
+            default:
+                return combineQueue(queue);
         }
     }
 
@@ -506,6 +571,6 @@ public class Parser {
             result.add(first);
             return parseArgsListDoubleSlash(ctx, result);
         }
-        return List.of();
+        return result;
     }
 }

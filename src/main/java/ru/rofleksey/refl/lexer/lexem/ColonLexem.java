@@ -1,6 +1,6 @@
 package ru.rofleksey.refl.lexer.lexem;
 
-import org.jetbrains.annotations.NotNull;
+
 import ru.rofleksey.refl.lexer.Lexem;
 import ru.rofleksey.refl.lexer.LexemType;
 
@@ -8,7 +8,7 @@ public class ColonLexem implements Lexem {
     public static final ColonLexem INSTANCE = new ColonLexem();
 
     @Override
-    public @NotNull LexemType type() {
+    public  LexemType type() {
         return LexemType.COLON;
     }
 }

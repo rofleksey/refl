@@ -1,6 +1,6 @@
 package ru.rofleksey.refl.lang.node;
 
-import org.jetbrains.annotations.NotNull;
+
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
@@ -16,7 +16,12 @@ public class AddNode implements Node {
 
 
     @Override
-    public @NotNull Value evaluate(ReflContext ctx) throws EvalError {
+    public  Value evaluate(ReflContext ctx) throws EvalError {
         return left.evaluate(ctx).add(right.evaluate(ctx));
+    }
+
+    @Override
+    public String toString() {
+        return "(" + left.toString() + "+" + right.toString() + ")";
     }
 }

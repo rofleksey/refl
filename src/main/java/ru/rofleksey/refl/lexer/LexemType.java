@@ -26,5 +26,6 @@ public enum LexemType {
     GT,
     COLON,
     COMMA,
+    SEMICOLON,
     EOF,
 }

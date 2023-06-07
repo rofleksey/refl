@@ -54,13 +54,13 @@ class LexerTest {
     public void testVars() throws LexerError {
         var result = lexer.process("x1 = '123'\nabc = 123 y=refl");
         assertEquals(List.of(
-                new VarLiteral("x1"),
+                new VarLexem("x1"),
                 AssignLexem.INSTANCE,
                 new StringLexem("123"),
-                new VarLiteral("abc"),
+                new VarLexem("abc"),
                 AssignLexem.INSTANCE,
                 new NumberLexem(123),
-                new VarLiteral("y"),
+                new VarLexem("y"),
                 AssignLexem.INSTANCE,
                 ReflLexem.INSTANCE,
                 EofLexem.INSTANCE
@@ -95,7 +95,7 @@ class LexerTest {
     public void testStringEscape() throws LexerError {
         var result = lexer.process("x = '12\\\'3\\\\5'");
         assertEquals(List.of(
-                new VarLiteral("x"),
+                new VarLexem("x"),
                 AssignLexem.INSTANCE,
                 new StringLexem("12'3\\5"),
                 EofLexem.INSTANCE
@@ -106,16 +106,16 @@ class LexerTest {
     public void testMath() throws LexerError {
         var result = lexer.process("x+y*z/(a-c)");
         assertEquals(List.of(
-                new VarLiteral("x"),
+                new VarLexem("x"),
                 PlusLexem.INSTANCE,
-                new VarLiteral("y"),
+                new VarLexem("y"),
                 MultiplyLexem.INSTANCE,
-                new VarLiteral("z"),
+                new VarLexem("z"),
                 DivideLexem.INSTANCE,
                 BracketOpenLexem.INSTANCE,
-                new VarLiteral("a"),
+                new VarLexem("a"),
                 MinusLexem.INSTANCE,
-                new VarLiteral("c"),
+                new VarLexem("c"),
                 BracketCloseLexem.INSTANCE,
                 EofLexem.INSTANCE
         ), result);
@@ -125,18 +125,18 @@ class LexerTest {
     public void testLogic() throws LexerError {
         var result = lexer.process("x&y|z&(!a&!b)");
         assertEquals(List.of(
-                new VarLiteral("x"),
+                new VarLexem("x"),
                 AndLexem.INSTANCE,
-                new VarLiteral("y"),
+                new VarLexem("y"),
                 OrLexem.INSTANCE,
-                new VarLiteral("z"),
+                new VarLexem("z"),
                 AndLexem.INSTANCE,
                 BracketOpenLexem.INSTANCE,
                 NotLexem.INSTANCE,
-                new VarLiteral("a"),
+                new VarLexem("a"),
                 AndLexem.INSTANCE,
                 NotLexem.INSTANCE,
-                new VarLiteral("b"),
+                new VarLexem("b"),
                 BracketCloseLexem.INSTANCE,
                 EofLexem.INSTANCE
         ), result);
@@ -146,17 +146,17 @@ class LexerTest {
     public void testComparison() throws LexerError {
         var result = lexer.process("a < b & c > d & e == f");
         assertEquals(List.of(
-                new VarLiteral("a"),
+                new VarLexem("a"),
                 LtLexem.INSTANCE,
-                new VarLiteral("b"),
+                new VarLexem("b"),
                 AndLexem.INSTANCE,
-                new VarLiteral("c"),
+                new VarLexem("c"),
                 GtLexem.INSTANCE,
-                new VarLiteral("d"),
+                new VarLexem("d"),
                 AndLexem.INSTANCE,
-                new VarLiteral("e"),
+                new VarLexem("e"),
                 EqLexem.INSTANCE,
-                new VarLiteral("f"),
+                new VarLexem("f"),
                 EofLexem.INSTANCE
         ), result);
     }
@@ -166,10 +166,10 @@ class LexerTest {
         var result = lexer.process("if a : b c end");
         assertEquals(List.of(
                 IfLexem.INSTANCE,
-                new VarLiteral("a"),
+                new VarLexem("a"),
                 ColonLexem.INSTANCE,
-                new VarLiteral("b"),
-                new VarLiteral("c"),
+                new VarLexem("b"),
+                new VarLexem("c"),
                 EndLexem.INSTANCE,
                 EofLexem.INSTANCE
         ), result);
@@ -180,10 +180,25 @@ class LexerTest {
         var result = lexer.process("while a : b end");
         assertEquals(List.of(
                 WhileLexem.INSTANCE,
-                new VarLiteral("a"),
+                new VarLexem("a"),
                 ColonLexem.INSTANCE,
-                new VarLiteral("b"),
+                new VarLexem("b"),
                 EndLexem.INSTANCE,
+                EofLexem.INSTANCE
+        ), result);
+    }
+
+    @Test
+    public void testFuncCall() throws LexerError {
+        var result = lexer.process("foo (a, 5);");
+        assertEquals(List.of(
+                new VarLexem("foo"),
+                BracketOpenLexem.INSTANCE,
+                new VarLexem("a"),
+                CommaLexem.INSTANCE,
+                new NumberLexem(5),
+                BracketCloseLexem.INSTANCE,
+                SemicolonLexem.INSTANCE,
                 EofLexem.INSTANCE
         ), result);
     }

@@ -1,12 +1,13 @@
 package ru.rofleksey.refl.lang.node;
 
-import org.jetbrains.annotations.NotNull;
+
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CallNode implements Node {
     private final Node child;
@@ -19,11 +20,18 @@ public class CallNode implements Node {
 
 
     @Override
-    public @NotNull Value evaluate(ReflContext ctx) throws EvalError {
+    public  Value evaluate(ReflContext ctx) throws EvalError {
         var valueList = new ArrayList<Value>(args.size());
         for (var arg : args) {
             valueList.add(arg.evaluate(ctx));
         }
         return child.evaluate(ctx).call(ctx, valueList);
+    }
+
+    @Override
+    public String toString() {
+        return child.toString() + "(" +
+                args.stream().map(Object::toString).collect(Collectors.joining(","))
+                + ")";
     }
 }

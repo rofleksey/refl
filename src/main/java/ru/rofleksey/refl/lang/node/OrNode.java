@@ -1,6 +1,6 @@
 package ru.rofleksey.refl.lang.node;
 
-import org.jetbrains.annotations.NotNull;
+
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
@@ -17,11 +17,16 @@ public class OrNode implements Node {
 
 
     @Override
-    public @NotNull Value evaluate(ReflContext ctx) throws EvalError {
+    public  Value evaluate(ReflContext ctx) throws EvalError {
         var leftValue = left.evaluate(ctx);
         if (leftValue.isTruthy()) {
             return NumberValue.TRUE;
         }
-        return leftValue.and(right.evaluate(ctx));
+        return leftValue.or(right.evaluate(ctx));
+    }
+
+    @Override
+    public String toString() {
+        return "(" + left.toString() + "|" + right.toString() + ")";
     }
 }

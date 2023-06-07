@@ -1,6 +1,6 @@
 package ru.rofleksey.refl.lang.node;
 
-import org.jetbrains.annotations.NotNull;
+
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
@@ -25,7 +25,7 @@ public class CompareNode implements Node {
 
 
     @Override
-    public @NotNull Value evaluate(ReflContext ctx) throws EvalError {
+    public  Value evaluate(ReflContext ctx) throws EvalError {
         var compare = left.evaluate(ctx).compare(right.evaluate(ctx));
         if (compare.getType().equals("refl")) {
             return NumberValue.FALSE;
@@ -35,5 +35,16 @@ public class CompareNode implements Node {
             return NumberValue.TRUE;
         }
         return NumberValue.FALSE;
+    }
+
+    @Override
+    public String toString() {
+        if (predicate == LT) {
+            return "(" + left.toString() + "<" + right.toString() + ")";
+        }
+        if (predicate == GT) {
+            return "(" + left.toString() + ">" + right.toString() + ")";
+        }
+        return "(" + left.toString() + "==" + right.toString() + ")";
     }
 }

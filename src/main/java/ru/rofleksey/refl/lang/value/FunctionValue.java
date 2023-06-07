@@ -1,22 +1,19 @@
 package ru.rofleksey.refl.lang.value;
 
 
-import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
-import ru.rofleksey.refl.lang.error.NotCallableError;
+import ru.rofleksey.refl.lang.error.EvalError;
 
-import java.util.List;
+public abstract class FunctionValue implements Value {
+    private final String name;
 
-public class StringValue implements Value {
-    private final String value;
-
-    public StringValue(String value) {
-        this.value = value;
+    public FunctionValue(String name) {
+        this.name = name;
     }
 
     @Override
     public  Value add(Value other) {
-        return new StringValue(value + other.asString().value);
+        return ReflValue.INSTANCE;
     }
 
     @Override
@@ -30,7 +27,7 @@ public class StringValue implements Value {
     }
 
     @Override
-    public  Value divide(Value other) {
+    public  Value divide(Value other) throws EvalError {
         return ReflValue.INSTANCE;
     }
 
@@ -51,52 +48,40 @@ public class StringValue implements Value {
     }
 
     @Override
-    public  Value compare(Value other) {
-        if (!getType().equals(other.getType())) {
-            return ReflValue.INSTANCE;
+    public  Value compare(Value other) throws EvalError {
+        if (this == other) {
+            return NumberValue.TRUE;
         }
-        var otherString = other.asString();
-        return new NumberValue(value.compareTo(otherString.value));
+        return ReflValue.INSTANCE;
     }
 
     @Override
     public  Value not() {
-        if (isTruthy()) {
-            return NumberValue.FALSE;
-        }
-        return NumberValue.TRUE;
-    }
-
-    @Override
-    public  Value call(ReflContext ctx, List<Value> args) throws NotCallableError {
-        throw new NotCallableError(toString());
-    }
-
-    @Override
-    public boolean isTruthy() {
-        return !value.isEmpty();
-    }
-
-    @Override
-    public  StringValue asString() {
-        return this;
-    }
-
-    @Override
-    public  NumberValue asNumber() {
-        if (isTruthy()) {
-            return NumberValue.TRUE;
-        }
         return NumberValue.FALSE;
     }
 
     @Override
+    public boolean isTruthy() {
+        return true;
+    }
+
+    @Override
+    public  StringValue asString() {
+        return new StringValue(toString());
+    }
+
+    @Override
+    public  NumberValue asNumber() {
+        return NumberValue.TRUE;
+    }
+
+    @Override
     public  String getType() {
-        return "string";
+        return "function";
     }
 
     @Override
     public String toString() {
-        return value;
+        return "function "+name + "{}";
     }
 }

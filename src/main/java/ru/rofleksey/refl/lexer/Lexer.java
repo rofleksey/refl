@@ -70,23 +70,75 @@ public class Lexer {
 
     private void parseOther(String text) throws LexerError {
         switch (curChar) {
-            case '?' -> result.add(QuestionLexem.INSTANCE);
-            case '$' -> result.add(DollarLexem.INSTANCE);
-            case '+' -> result.add(PlusLexem.INSTANCE);
-            case '-' -> result.add(MinusLexem.INSTANCE);
-            case '*' -> result.add(MultiplyLexem.INSTANCE);
-            case '/' -> result.add(DivideLexem.INSTANCE);
-            case '&' -> result.add(AndLexem.INSTANCE);
-            case '|' -> result.add(OrLexem.INSTANCE);
-            case '.' -> result.add(DotLexem.INSTANCE);
-            case ',' -> result.add(CommaLexem.INSTANCE);
-            case ':' -> result.add(ColonLexem.INSTANCE);
-            case '!' -> result.add(NotLexem.INSTANCE);
-            case '<' -> result.add(LtLexem.INSTANCE);
-            case '>' -> result.add(GtLexem.INSTANCE);
-            case '(' -> result.add(BracketOpenLexem.INSTANCE);
-            case ')' -> result.add(BracketCloseLexem.INSTANCE);
-            default -> {
+            case '?':
+                result.add(QuestionLexem.INSTANCE);
+                break;
+
+            case '$':
+                result.add(DollarLexem.INSTANCE);
+                break;
+
+            case '+':
+                result.add(PlusLexem.INSTANCE);
+                break;
+
+            case '-':
+                result.add(MinusLexem.INSTANCE);
+                break;
+
+            case '*':
+                result.add(MultiplyLexem.INSTANCE);
+                break;
+
+            case '/':
+                result.add(DivideLexem.INSTANCE);
+                break;
+
+            case '&':
+                result.add(AndLexem.INSTANCE);
+                break;
+
+            case '|':
+                result.add(OrLexem.INSTANCE);
+                break;
+
+            case '.':
+                result.add(DotLexem.INSTANCE);
+                break;
+
+            case ',':
+                result.add(CommaLexem.INSTANCE);
+                break;
+
+            case ':':
+                result.add(ColonLexem.INSTANCE);
+                break;
+
+            case ';':
+                result.add(SemicolonLexem.INSTANCE);
+                break;
+
+            case '!':
+                result.add(NotLexem.INSTANCE);
+                break;
+
+            case '<':
+                result.add(LtLexem.INSTANCE);
+                break;
+
+            case '>':
+                result.add(GtLexem.INSTANCE);
+                break;
+
+            case '(':
+                result.add(BracketOpenLexem.INSTANCE);
+                break;
+
+            case ')':
+                result.add(BracketCloseLexem.INSTANCE);
+                break;
+
+            default:
                 if (lookUp(text, curPos, "==")) {
                     result.add(EqLexem.INSTANCE);
                     curPos++;
@@ -96,7 +148,6 @@ public class Lexer {
                     return;
                 }
                 throw new LexerError("Unexpected symbol '" + curChar + "' at " + curPos);
-            }
         }
     }
 
@@ -119,11 +170,25 @@ public class Lexer {
             if (Character.isLetter(curChar)) {
                 var str = parseVar(text);
                 switch (str) {
-                    case "if" -> result.add(IfLexem.INSTANCE);
-                    case "while" -> result.add(WhileLexem.INSTANCE);
-                    case "refl" -> result.add(ReflLexem.INSTANCE);
-                    case "end" -> result.add(EndLexem.INSTANCE);
-                    default -> result.add(new VarLiteral(str));
+                    case "if":
+                        result.add(IfLexem.INSTANCE);
+                        break;
+
+                    case "while":
+                        result.add(WhileLexem.INSTANCE);
+                        break;
+
+                    case "refl":
+                        result.add(ReflLexem.INSTANCE);
+                        break;
+
+                    case "end":
+                        result.add(EndLexem.INSTANCE);
+                        break;
+
+                    default:
+                        result.add(new VarLexem(str));
+                        break;
                 }
                 continue;
             }

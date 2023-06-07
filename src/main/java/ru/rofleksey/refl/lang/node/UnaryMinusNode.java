@@ -1,6 +1,6 @@
 package ru.rofleksey.refl.lang.node;
 
-import org.jetbrains.annotations.NotNull;
+
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
@@ -15,7 +15,12 @@ public class UnaryMinusNode implements Node {
 
 
     @Override
-    public @NotNull Value evaluate(ReflContext ctx) throws EvalError {
+    public  Value evaluate(ReflContext ctx) throws EvalError {
         return child.evaluate(ctx).multiply(NumberValue.MINUS_ONE);
+    }
+
+    @Override
+    public String toString() {
+        return "(-" + child.toString() + ")";
     }
 }

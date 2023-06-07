@@ -4,11 +4,11 @@ package ru.rofleksey.refl.lexer.lexem;
 import ru.rofleksey.refl.lexer.Lexem;
 import ru.rofleksey.refl.lexer.LexemType;
 
-public class LtLexem implements Lexem {
-    public static final LtLexem INSTANCE = new LtLexem();
+public class SemicolonLexem implements Lexem {
+    public static final SemicolonLexem INSTANCE = new SemicolonLexem();
 
     @Override
     public  LexemType type() {
-        return LexemType.LT;
+        return LexemType.SEMICOLON;
     }
 }
