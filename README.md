@@ -44,10 +44,10 @@ declList -> declList decl ; | decl ;
 decl -> if and : declList end | while and : declList end | var = and | and
 and -> orExp | and & orExp
 orExp -> notExp | orExp or notExp
-notExp -> rel | ! rel
-rel -> add | add < add
+notExp -> rel | not rel
+rel -> add | add < add | add == add | add > add
 add -> mul | add + mul | add - mul
-mul -> unary | mul * unary
+mul -> unary | mul * unary | mul / unary
 unary -> term | - term
 term -> const | var | ( and ) | call
 call -> var ( args )
