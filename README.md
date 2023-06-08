@@ -34,22 +34,36 @@ dependencies {
 Declare functions and variables via context and run script.
 
 ```java
-var ctx=new ReflContext();
-        var compiler=new ReflCompiler();
+import ru.rofleksey.refl.lang.ReflContext;
+import ru.rofleksey.refl.lang.ReflExecutor;
+import ru.rofleksey.refl.lang.Value;
+import ru.rofleksey.refl.lang.error.EvalError;
+import ru.rofleksey.refl.lang.value.FunctionValue;
+import ru.rofleksey.refl.lang.value.ReflValue;
+import ru.rofleksey.refl.lexer.LexerError;
+import ru.rofleksey.refl.parser.error.ParserError;
 
-        ctx.setVar("x",new NumberValue(5));
-        ctx.setVar("print",new FunctionValue("print"){
-@Override
-public Value call(ReflContext ctx,List<Value> args){
-        args.forEach(it->{
-        System.out.println(it.toString());
-        });
-        return ReflValue.INSTANCE;
-        }
+import java.util.List;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        var ctx = new ReflContext();
+        var compiler = new ReflCompiler();
+
+        ctx.setVar("x", new NumberValue(5));
+        ctx.setVar("print", new FunctionValue("print") {
+            @Override
+            public Value call(ReflContext ctx, List<Value> args) {
+                args.forEach(it -> System.out.println(it.toString()));
+                return ReflValue.INSTANCE;
+            }
         });
 
-        var executor=compiler.compile("while x > 0: print(x); x = x - 1; end;");
-        var result=executor.execute(ctx);
+        var executor = compiler.compile("while x > 0: print(x); x = x - 1; end;");
+        var result = executor.execute(ctx);
+    }
+}
 ```
 
 ## Language
