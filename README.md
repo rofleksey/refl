@@ -40,16 +40,16 @@ var ctx=new ReflContext();
         ctx.setVar("x",new NumberValue(5));
         ctx.setVar("print",new FunctionValue("print"){
 @Override
-  public Value call(ReflContext ctx, List<Value> args) {
-    args.forEach(it -> {
-    	System.out.println(it.toString());
-    });
-    return ReflValue.INSTANCE;
-  }
-});
+public Value call(ReflContext ctx,List<Value> args){
+        args.forEach(it->{
+        System.out.println(it.toString());
+        });
+        return ReflValue.INSTANCE;
+        }
+        });
 
-var executor = compiler.compile("while x > 0: print(x); x = x - 1; end;");
-var result = executor.execute(ctx);
+        var executor=compiler.compile("while x > 0: print(x); x = x - 1; end;");
+        var result=executor.execute(ctx);
 ```
 
 ## Language
