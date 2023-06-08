@@ -9,7 +9,7 @@ import ru.rofleksey.refl.lang.value.ReflValue;
 
 import java.util.List;
 
-public class StdExit extends FunctionValue {
+public final class StdExit extends FunctionValue {
     public StdExit() {
         super("exit");
     }

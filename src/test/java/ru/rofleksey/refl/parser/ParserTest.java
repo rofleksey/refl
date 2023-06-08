@@ -121,7 +121,7 @@ class ParserTest {
     }
 
     @Test
-    public void testIf() throws Throwable {
+    public void testIfSimple() throws Throwable {
         var lexems = lexer.process("if 2 > x : 10; end;");
         var result = parser.parse(lexems);
         assertEquals(1, result.size());
@@ -134,7 +134,23 @@ class ParserTest {
     }
 
     @Test
-    public void testComplex() throws Throwable {
+    public void testCycle() throws Throwable {
+        var lexems = lexer.process("x = 10; count = 0; while x > 0: if x / 2 == x / 2 * 2: count = count + 1; end; end; count;");
+        var result = parser.parse(lexems);
+        assertEquals(4, result.size());
+
+        var ctx = new ReflContext();
+
+        Value evalResult = ReflValue.INSTANCE;
+        for (var res : result) {
+            evalResult = res.evaluate(ctx);
+        }
+
+        assertEquals(0, evalResult.asNumber().getValue());
+    }
+
+    @Test
+    public void testIf() throws Throwable {
         var lexems = lexer.process("x = 1; y = 2; if x < y : z = 10; end; if x > y : z = 100; end;");
         var result = parser.parse(lexems);
         assertEquals(4, result.size());

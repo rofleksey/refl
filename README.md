@@ -5,17 +5,41 @@
 
 --------
 
-## How To Use
+[![Java 11+](https://img.shields.io/badge/java-11-4c7e9f.svg)](http://java.oracle.com)
+[![License](https://img.shields.io/badge/license-MIT-4c7e9f.svg)](https://raw.githubusercontent.com/rofleksey/refl/main/LICENSE.txt)
+[![Maven Central](https://img.shields.io/maven-central/v/ru.rofleksey.refl/refl)](https://central.sonatype.com/artifact/ru.rofleksey.refl/refl)
+
+## Installation
+
+#### Gradle
+
+```groovy
+dependencies {
+    implementation 'ru.rofleksey.refl:refl:0.0.1'
+}
+```
+
+#### Maven
+
+```xml
+<dependency>
+    <groupId>ru.rofleksey.refl</groupId>
+    <artifactId>refl</artifactId>
+    <version>0.0.1</version>
+</dependency>
+```
+
+## Usage
 
 Declare functions and variables via context and run script.
 
 ```java
-var ctx = new ReflContext();
-var compiler = new ReflCompiler();
+var ctx=new ReflContext();
+        var compiler=new ReflCompiler();
 
-ctx.setVar("x", new NumberValue(5));
-ctx.setVar("print", new FunctionValue("print") {
-  @Override
+        ctx.setVar("x",new NumberValue(5));
+        ctx.setVar("print",new FunctionValue("print"){
+@Override
   public Value call(ReflContext ctx, List<Value> args) {
     args.forEach(it -> {
     	System.out.println(it.toString());

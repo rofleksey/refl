@@ -1,9 +1,16 @@
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'signing'
+    id 'maven-publish'
 }
 
 group = 'ru.rofleksey.refl'
 version = '0.0.1'
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
 
 repositories {
     mavenCentral()
@@ -12,6 +19,63 @@ repositories {
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'refl'
+            from components.java
+            pom {
+                name = 'Refl'
+                description = 'Simple embeddable scripting language for Java'
+                url = 'https://github.com/rofleksey/refl'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/license/mit/'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rofleksey'
+                        name = 'Alex Borisov'
+                        email = 'evilmorty@yandex.ru'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/rofleksey/refl.git'
+                    developerConnection = 'scm:git:ssh://github.com/rofleksey/refl.git'
+                    url = 'https://github.com/rofleksey/refl'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = project.properties["ossrhUsername"].toString()
+                password = project.properties["ossrhPassword"].toString()
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
 
 test {

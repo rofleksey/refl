@@ -8,7 +8,7 @@ import ru.rofleksey.refl.lang.value.FunctionValue;
 
 import java.util.List;
 
-public class StdWait extends FunctionValue {
+public final class StdWait extends FunctionValue {
     public StdWait() {
         super("wait");
     }
