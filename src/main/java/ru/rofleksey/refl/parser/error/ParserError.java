@@ -1,4 +1,4 @@
-package ru.rofleksey.refl.parser;
+package ru.rofleksey.refl.parser.error;
 
 public class ParserError extends Exception {
     public ParserError(String message) {

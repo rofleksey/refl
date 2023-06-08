@@ -5,7 +5,7 @@ import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 
-public class MultiplyNode implements Node {
+public final class MultiplyNode implements Node {
     private final Node left;
     private final Node right;
 

@@ -1,14 +1,14 @@
 package ru.rofleksey.refl.lang.node;
 
 
-import ru.rofleksey.refl.lang.error.EvalError;
-import ru.rofleksey.refl.lang.value.ReflValue;
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
+import ru.rofleksey.refl.lang.error.EvalError;
+import ru.rofleksey.refl.lang.value.ReflValue;
 
 import java.util.List;
 
-public class IfNode implements Node {
+public final class IfNode implements Node {
     private final Node condition;
     private final List<Node> body;
 

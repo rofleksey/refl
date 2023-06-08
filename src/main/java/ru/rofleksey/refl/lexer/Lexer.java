@@ -5,7 +5,7 @@ import ru.rofleksey.refl.lexer.lexem.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Lexer {
+public final class Lexer {
     private int curPos;
     private char curChar;
     private List<Lexem> result;
@@ -70,14 +70,6 @@ public class Lexer {
 
     private void parseOther(String text) throws LexerError {
         switch (curChar) {
-            case '?':
-                result.add(QuestionLexem.INSTANCE);
-                break;
-
-            case '$':
-                result.add(DollarLexem.INSTANCE);
-                break;
-
             case '+':
                 result.add(PlusLexem.INSTANCE);
                 break;
@@ -100,10 +92,6 @@ public class Lexer {
 
             case '|':
                 result.add(OrLexem.INSTANCE);
-                break;
-
-            case '.':
-                result.add(DotLexem.INSTANCE);
                 break;
 
             case ',':

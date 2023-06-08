@@ -6,7 +6,7 @@ import ru.rofleksey.refl.lexer.LexemType;
 
 import java.util.Objects;
 
-public class StringLexem implements Lexem {
+public final class StringLexem implements Lexem {
     private final String text;
 
     public StringLexem(String text) {

@@ -11,6 +11,7 @@ Declare functions and variables via context and run script.
 
 ```java
 var ctx = new ReflContext();
+var compiler = new ReflCompiler();
 
 ctx.setVar("x", new NumberValue(5));
 ctx.setVar("print", new FunctionValue("print") {
@@ -23,8 +24,8 @@ ctx.setVar("print", new FunctionValue("print") {
   }
 });
 
-var result = Refl.eval(ctx, "while x > 0: print(x); x = x - 1; end;");
-
+var executor = compiler.compile("while x > 0: print(x); x = x - 1; end;");
+var result = executor.execute(ctx);
 ```
 
 ## Language
@@ -32,9 +33,9 @@ var result = Refl.eval(ctx, "while x > 0: print(x); x = x - 1; end;");
 * operators: +, -, *, /, =, ==, <, >, &, |, !
 * keywords: if, while, end
 * types: number (double), string, refl (same as null), function (can be declared only via `ReflContext`)
-* no support for global variables
+* built-in functions: exit (stops execution, returns first argument or refl), wait (waits for `ReflContext.notifyCtx()` call)
+* all variables are global
 * no support for function declarations inside code
-* no std
 * logical operators return 1 or 0
 
 Grammar:

@@ -1,4 +1,4 @@
-package ru.rofleksey.refl.parser;
+package ru.rofleksey.refl.parser.error;
 
 import ru.rofleksey.refl.lexer.LexemType;
 

@@ -6,10 +6,9 @@ import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 import ru.rofleksey.refl.lang.value.NumberValue;
 
-import java.util.Comparator;
 import java.util.function.Predicate;
 
-public class CompareNode implements Node {
+public final class CompareNode implements Node {
     public static final Predicate<Double> LT = value -> value < 0;
     public static final Predicate<Double> EQ = value -> value == 0;
     public static final Predicate<Double> GT = value -> value > 0;

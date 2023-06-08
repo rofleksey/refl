@@ -9,6 +9,8 @@ import ru.rofleksey.refl.lexer.LexemType;
 import ru.rofleksey.refl.lexer.lexem.NumberLexem;
 import ru.rofleksey.refl.lexer.lexem.StringLexem;
 import ru.rofleksey.refl.lexer.lexem.VarLexem;
+import ru.rofleksey.refl.parser.error.ParserError;
+import ru.rofleksey.refl.parser.error.UnexpectedLexemError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +81,7 @@ args -> argsList | ϵ
 argsList -> argsList , s | argsList , const | s | const
  */
 
-public class Parser {
+public final class Parser {
 
     public List<Node> parse(List<Lexem> input) throws ParserError {
         var ctx = new ParserContext(input);

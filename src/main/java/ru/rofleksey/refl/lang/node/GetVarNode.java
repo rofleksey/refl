@@ -5,7 +5,7 @@ import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 
-public class GetVarNode implements Node {
+public final class GetVarNode implements Node {
     private final String name;
 
     public GetVarNode(String name) {
@@ -14,7 +14,7 @@ public class GetVarNode implements Node {
 
 
     @Override
-    public  Value evaluate(ReflContext ctx) throws EvalError {
+    public Value evaluate(ReflContext ctx) throws EvalError {
         return ctx.getVar(name);
     }
 

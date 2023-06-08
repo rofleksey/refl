@@ -1,6 +1,4 @@
-package ru.rofleksey.refl.parser;
-
-import ru.rofleksey.refl.lexer.LexemType;
+package ru.rofleksey.refl.parser.error;
 
 public class UnexpectedEofError extends ParserError {
     public UnexpectedEofError() {

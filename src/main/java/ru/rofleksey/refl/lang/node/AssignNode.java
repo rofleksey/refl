@@ -5,7 +5,7 @@ import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 
-public class AssignNode implements Node {
+public final class AssignNode implements Node {
     private final String name;
     private final Node node;
 

@@ -5,7 +5,7 @@ import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 
-public class NotNode implements Node {
+public final class NotNode implements Node {
     private final Node child;
 
     public NotNode(Node child) {
@@ -14,7 +14,7 @@ public class NotNode implements Node {
 
 
     @Override
-    public  Value evaluate(ReflContext ctx) throws EvalError {
+    public Value evaluate(ReflContext ctx) throws EvalError {
         return child.evaluate(ctx).not();
     }
 

@@ -6,7 +6,7 @@ import ru.rofleksey.refl.lexer.LexemType;
 
 import java.util.Objects;
 
-public class NumberLexem implements Lexem {
+public final class NumberLexem implements Lexem {
     private final Integer value;
 
     public NumberLexem(Integer value) {

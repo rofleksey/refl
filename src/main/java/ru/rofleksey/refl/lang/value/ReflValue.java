@@ -6,16 +6,16 @@ import ru.rofleksey.refl.lang.Value;
 
 import java.util.List;
 
-public class ReflValue implements Value {
+public final class ReflValue implements Value {
     public static final ReflValue INSTANCE = new ReflValue();
 
     @Override
-    public  Value add(Value other) {
+    public Value add(Value other) {
         return INSTANCE;
     }
 
     @Override
-    public  Value subtract(Value other) {
+    public Value subtract(Value other) {
         return INSTANCE;
     }
 
@@ -64,16 +64,21 @@ public class ReflValue implements Value {
 
     @Override
     public  StringValue asString() {
-        return new StringValue("refl");
+        return new StringValue(toString());
     }
 
     @Override
-    public  NumberValue asNumber() {
+    public NumberValue asNumber() {
         return new NumberValue(0);
     }
 
     @Override
-    public  String getType() {
+    public String getType() {
+        return "refl";
+    }
+
+    @Override
+    public String toString() {
         return "refl";
     }
 }

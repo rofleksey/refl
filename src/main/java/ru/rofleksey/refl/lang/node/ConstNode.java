@@ -5,7 +5,7 @@ import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 
-public class ConstNode implements Node {
+public final class ConstNode implements Node {
     private final Value value;
 
     public ConstNode(Value value) {
@@ -14,7 +14,7 @@ public class ConstNode implements Node {
 
 
     @Override
-    public  Value evaluate(ReflContext ctx) throws EvalError {
+    public Value evaluate(ReflContext ctx) throws EvalError {
         return value;
     }
 

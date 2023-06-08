@@ -7,7 +7,7 @@ import ru.rofleksey.refl.lang.error.NotCallableError;
 
 import java.util.List;
 
-public class StringValue implements Value {
+public final class StringValue implements Value {
     private final String value;
 
     public StringValue(String value) {
@@ -15,7 +15,7 @@ public class StringValue implements Value {
     }
 
     @Override
-    public  Value add(Value other) {
+    public Value add(Value other) {
         return new StringValue(value + other.asString().value);
     }
 

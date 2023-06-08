@@ -6,7 +6,7 @@ import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 import ru.rofleksey.refl.lang.value.NumberValue;
 
-public class OrNode implements Node {
+public final class OrNode implements Node {
     private final Node left;
     private final Node right;
 

@@ -9,7 +9,7 @@ import ru.rofleksey.refl.lang.error.NotCallableError;
 
 import java.util.List;
 
-public class NumberValue implements Value {
+public final class NumberValue implements Value {
     public static final NumberValue TRUE = new NumberValue(1);
     public static final NumberValue FALSE = new NumberValue(0);
     public static final NumberValue MINUS_ONE = new NumberValue(-1);

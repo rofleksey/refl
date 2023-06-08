@@ -2,11 +2,14 @@ package ru.rofleksey.refl.parser;
 
 import ru.rofleksey.refl.lexer.Lexem;
 import ru.rofleksey.refl.lexer.LexemType;
+import ru.rofleksey.refl.parser.error.InvalidLexemError;
+import ru.rofleksey.refl.parser.error.ParserError;
+import ru.rofleksey.refl.parser.error.UnexpectedEofError;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class ParserContext {
+class ParserContext {
     private final LinkedList<Lexem> lexems;
 
     public ParserContext(List<Lexem> lexems) {
