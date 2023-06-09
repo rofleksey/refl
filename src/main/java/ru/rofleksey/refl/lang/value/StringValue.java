@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class StringValue implements Value {
+    public static final StringValue EMPTY = new StringValue("");
     private final String value;
 
     public StringValue(String value) {
@@ -85,10 +86,14 @@ public final class StringValue implements Value {
 
     @Override
     public NumberValue asNumber() {
-        if (isTruthy()) {
-            return NumberValue.TRUE;
+        try {
+            return new NumberValue(Double.parseDouble(value));
+        } catch (NumberFormatException ignored) {
+            if (isTruthy()) {
+                return NumberValue.TRUE;
+            }
+            return NumberValue.FALSE;
         }
-        return NumberValue.FALSE;
     }
 
     @Override

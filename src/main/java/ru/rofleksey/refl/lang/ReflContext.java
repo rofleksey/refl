@@ -17,11 +17,14 @@ public final class ReflContext {
         vars = new HashMap<>();
 
         vars.put("wait", new StdWait());
+        vars.put("sleep", new StdSleep());
         vars.put("exit", new StdExit());
         vars.put("random", new StdRandom());
         vars.put("floor", new StdFloor());
         vars.put("ceil", new StdCeil());
         vars.put("round", new StdRound());
+        vars.put("string", new StdString());
+        vars.put("number", new StdNumber());
     }
 
     public void setVar(String name, Value value) {

@@ -62,7 +62,7 @@ public final class Lexer {
             builder.append(text.charAt(curPos));
             curPos++;
         }
-        if (curPos >= text.length() || curPos - startPos < 2 || text.charAt(curPos) != curChar) {
+        if (curPos >= text.length() || text.charAt(curPos) != curChar) {
             throw new LexerError("Closing quote not found, begins at " + startPos);
         }
         return builder.toString();

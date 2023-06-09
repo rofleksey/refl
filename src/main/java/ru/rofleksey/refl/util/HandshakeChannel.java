@@ -12,7 +12,7 @@ public class HandshakeChannel<T> {
         lock.lockInterruptibly();
 
         try {
-            condition.awaitUninterruptibly();
+            condition.await();
             var result = passedValue;
             passedValue = null;
             return result;

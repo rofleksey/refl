@@ -105,6 +105,15 @@ class LexerTest {
     }
 
     @Test
+    public void testEmptyString() throws LexerError {
+        var result = lexer.process("''");
+        assertEquals(List.of(
+                new StringLexem(""),
+                EofLexem.INSTANCE
+        ), result);
+    }
+
+    @Test
     public void testMath() throws LexerError {
         var result = lexer.process("x+y*z/(a-c)");
         assertEquals(List.of(

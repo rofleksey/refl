@@ -75,7 +75,9 @@ public class Main {
 * built-in functions:
   * exit (stops execution, returns first argument or refl)
   * wait (waits for `ReflContext.notifyCtx()` call)
+  * sleep (calls Thread.sleep with first argument)
   * random, floor, ceil, round
+  * string, number (conversion)
 
 * all variables are global
 * no support for function declarations inside code
