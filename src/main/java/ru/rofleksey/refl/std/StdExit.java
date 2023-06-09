@@ -8,6 +8,7 @@ import ru.rofleksey.refl.lang.value.FunctionValue;
 import ru.rofleksey.refl.lang.value.ReflValue;
 
 import java.util.List;
+import java.util.Map;
 
 public final class StdExit extends FunctionValue {
     public StdExit() {
@@ -15,7 +16,7 @@ public final class StdExit extends FunctionValue {
     }
 
     @Override
-    public Value call(ReflContext ctx, List<Value> args) throws EvalError {
+    public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
         Value returnValue = ReflValue.INSTANCE;
         if (!args.isEmpty()) {
             returnValue = args.get(0);

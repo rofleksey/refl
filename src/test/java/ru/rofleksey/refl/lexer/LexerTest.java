@@ -6,7 +6,8 @@ import ru.rofleksey.refl.lexer.lexem.*;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class LexerTest {
     private static Lexer lexer;
@@ -68,11 +69,12 @@ class LexerTest {
     }
 
     @Test
-    public void testLargeNumber() {
-        var e = assertThrows(LexerError.class, () -> {
-            lexer.process("x = 12345678901234567890");
-        });
-        assertEquals("Failed to parse number '12345678901234567890' at 4", e.getMessage());
+    public void testDoubleValue() throws LexerError {
+        var result = lexer.process("0.25");
+        assertEquals(List.of(
+                new NumberLexem(0.25),
+                EofLexem.INSTANCE
+        ), result);
     }
 
     @Test

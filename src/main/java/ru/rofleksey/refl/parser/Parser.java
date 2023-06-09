@@ -13,7 +13,9 @@ import ru.rofleksey.refl.parser.error.ParserError;
 import ru.rofleksey.refl.parser.error.UnexpectedLexemError;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 // http://marvin.cs.uidaho.edu/Teaching/CS445/c-Grammar.pdf
@@ -352,57 +354,70 @@ public final class Parser {
             ctx.take();
             var variable = ((VarLexem) curLexem);
             ctx.consume(LexemType.BRACKET_OPEN);
-            var args = parseArgs(ctx);
+            var result = new ArrayList<Node>();
+            var namedArgsMap = new HashMap<String, Node>();
+            var args = parseArgs(ctx, result, namedArgsMap);
             ctx.consume(LexemType.BRACKET_CLOSE);
-            return new CallNode(new GetVarNode(variable.name()), args);
+            return new CallNode(new GetVarNode(variable.name()), args, namedArgsMap);
         }
         throw new UnexpectedLexemError(curLexem.type());
     }
 
-    private List<Node> parseArgs(ParserContext ctx) throws ParserError {
+    private List<Node> parseArgs(ParserContext ctx, List<Node> result, Map<String, Node> namedArgsMap) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
             case STRING:
             case NUMBER:
             case REFL:
             case VARIABLE:
-                var result = new ArrayList<Node>();
-                return parseArgsList(ctx, result);
+                return parseArgsList(ctx, result, namedArgsMap);
 
             default:
                 return List.of();
         }
     }
 
-    private List<Node> parseArgsList(ParserContext ctx, List<Node> result) throws ParserError {
+    private List<Node> parseArgsList(ParserContext ctx, List<Node> result, Map<String, Node> namedArgsMap) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
             case STRING:
                 ctx.take();
                 var str = ((StringLexem) curLexem);
                 result.add(new ConstNode(new StringValue(str.text())));
-                return parseArgsListDoubleSlash(ctx, result);
+                return parseArgsListDoubleSlash(ctx, result, namedArgsMap);
 
             case NUMBER:
                 ctx.take();
                 var num = ((NumberLexem) curLexem);
                 result.add(new ConstNode(new NumberValue(num.value())));
-                return parseArgsListDoubleSlash(ctx, result);
+                return parseArgsListDoubleSlash(ctx, result, namedArgsMap);
 
             case REFL:
                 ctx.take();
                 result.add(new ConstNode(ReflValue.INSTANCE));
-                return parseArgsListDoubleSlash(ctx, result);
+                return parseArgsListDoubleSlash(ctx, result, namedArgsMap);
 
             case VARIABLE:
+                if (ctx.lookUp(LexemType.ASSIGN, 1)) {
+                    parseNamedArg(ctx, namedArgsMap);
+                    return parseArgsListDoubleSlash(ctx, result, namedArgsMap);
+                }
                 ctx.take();
                 var variable = ((VarLexem) curLexem);
                 result.add(new GetVarNode(variable.name()));
-                return parseArgsListDoubleSlash(ctx, result);
+                return parseArgsListDoubleSlash(ctx, result, namedArgsMap);
 
             default:
                 return List.of();
         }
+    }
+
+    private void parseNamedArg(ParserContext ctx, Map<String, Node> namedArgsMap) throws ParserError {
+        var variable = ((VarLexem) ctx.peek());
+        ctx.take();
+        ctx.consume(LexemType.ASSIGN);
+        var node = parseNamedArgSlash(ctx);
+        namedArgsMap.put(variable.name(), node);
     }
 
     private NodeWithLexem parseRelSlash(ParserContext ctx) throws ParserError {
@@ -432,7 +447,45 @@ public final class Parser {
         }
     }
 
-    private Node parseArgsListSlash(ParserContext ctx) throws ParserError {
+    private void parseArgsListSlash(ParserContext ctx, List<Node> result, Map<String, Node> namedArgsMap) throws ParserError {
+        var curLexem = ctx.peek();
+        switch (curLexem.type()) {
+            case STRING:
+                ctx.take();
+                var str = ((StringLexem) curLexem);
+                result.add(new ConstNode(new StringValue(str.text())));
+                break;
+
+            case NUMBER:
+                ctx.take();
+                var num = ((NumberLexem) curLexem);
+                result.add(new ConstNode(new NumberValue(num.value())));
+                break;
+
+            case REFL:
+                ctx.take();
+                result.add(new ConstNode(ReflValue.INSTANCE));
+                break;
+
+            case VARIABLE:
+                if (ctx.lookUp(LexemType.ASSIGN, 1)) {
+                    var variable = ((VarLexem) curLexem);
+                    ctx.take();
+                    ctx.consume(LexemType.ASSIGN);
+                    namedArgsMap.put(variable.name(), parseNamedArgSlash(ctx));
+                    break;
+                }
+                ctx.take();
+                var variable = ((VarLexem) curLexem);
+                result.add(new GetVarNode(variable.name()));
+                break;
+
+            default:
+                throw new UnexpectedLexemError(curLexem.type());
+        }
+    }
+
+    private Node parseNamedArgSlash(ParserContext ctx) throws ParserError {
         var curLexem = ctx.peek();
         switch (curLexem.type()) {
             case STRING:
@@ -565,13 +618,12 @@ public final class Parser {
         }
     }
 
-    private List<Node> parseArgsListDoubleSlash(ParserContext ctx, List<Node> result) throws ParserError {
+    private List<Node> parseArgsListDoubleSlash(ParserContext ctx, List<Node> result, Map<String, Node> namedArgsMap) throws ParserError {
         var curLexem = ctx.peek();
         if (curLexem.type() == LexemType.COMMA) {
             ctx.take();
-            var first = parseArgsListSlash(ctx);
-            result.add(first);
-            return parseArgsListDoubleSlash(ctx, result);
+            parseArgsListSlash(ctx, result, namedArgsMap);
+            return parseArgsListDoubleSlash(ctx, result, namedArgsMap);
         }
         return result;
     }

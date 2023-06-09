@@ -10,6 +10,7 @@ import ru.rofleksey.refl.lexer.LexerError;
 import ru.rofleksey.refl.parser.error.ParserError;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
@@ -22,7 +23,7 @@ public class Main {
 
         ctx.setVar("print", new FunctionValue("print") {
             @Override
-            public Value call(ReflContext ctx, List<Value> args) {
+            public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) {
                 args.forEach(it -> {
                     System.out.println(it.toString());
                 });
@@ -32,7 +33,7 @@ public class Main {
 
         ctx.setVar("help", new FunctionValue("help") {
             @Override
-            public Value call(ReflContext ctx, List<Value> args) {
+            public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) {
                 System.out.println("Print exit() to exit.");
                 return ReflValue.INSTANCE;
             }
@@ -40,7 +41,7 @@ public class Main {
 
         ctx.setVar("exit", new FunctionValue("exit") {
             @Override
-            public Value call(ReflContext ctx, List<Value> args) {
+            public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) {
                 System.exit(0);
                 return ReflValue.INSTANCE;
             }

@@ -6,6 +6,7 @@ import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.NotCallableError;
 
 import java.util.List;
+import java.util.Map;
 
 public final class StringValue implements Value {
     private final String value;
@@ -20,22 +21,22 @@ public final class StringValue implements Value {
     }
 
     @Override
-    public  Value subtract(Value other) {
+    public Value subtract(Value other) {
         return ReflValue.INSTANCE;
     }
 
     @Override
-    public  Value multiply(Value other) {
+    public Value multiply(Value other) {
         return ReflValue.INSTANCE;
     }
 
     @Override
-    public  Value divide(Value other) {
+    public Value divide(Value other) {
         return ReflValue.INSTANCE;
     }
 
     @Override
-    public  Value and(Value other) {
+    public Value and(Value other) {
         if (isTruthy() && other.isTruthy()) {
             return NumberValue.TRUE;
         }
@@ -43,7 +44,7 @@ public final class StringValue implements Value {
     }
 
     @Override
-    public  Value or(Value other) {
+    public Value or(Value other) {
         if (isTruthy() || other.isTruthy()) {
             return NumberValue.TRUE;
         }
@@ -51,7 +52,7 @@ public final class StringValue implements Value {
     }
 
     @Override
-    public  Value compare(Value other) {
+    public Value compare(Value other) {
         if (!getType().equals(other.getType())) {
             return ReflValue.INSTANCE;
         }
@@ -60,7 +61,7 @@ public final class StringValue implements Value {
     }
 
     @Override
-    public  Value not() {
+    public Value not() {
         if (isTruthy()) {
             return NumberValue.FALSE;
         }
@@ -68,7 +69,7 @@ public final class StringValue implements Value {
     }
 
     @Override
-    public  Value call(ReflContext ctx, List<Value> args) throws NotCallableError {
+    public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws NotCallableError {
         throw new NotCallableError(toString());
     }
 
@@ -78,12 +79,12 @@ public final class StringValue implements Value {
     }
 
     @Override
-    public  StringValue asString() {
+    public StringValue asString() {
         return this;
     }
 
     @Override
-    public  NumberValue asNumber() {
+    public NumberValue asNumber() {
         if (isTruthy()) {
             return NumberValue.TRUE;
         }
@@ -91,7 +92,7 @@ public final class StringValue implements Value {
     }
 
     @Override
-    public  String getType() {
+    public String getType() {
         return "string";
     }
 

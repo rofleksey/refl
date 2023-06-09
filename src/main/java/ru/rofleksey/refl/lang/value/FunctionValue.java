@@ -12,27 +12,27 @@ public abstract class FunctionValue implements Value {
     }
 
     @Override
-    public  Value add(Value other) {
+    public Value add(Value other) {
         return ReflValue.INSTANCE;
     }
 
     @Override
-    public  Value subtract(Value other) {
+    public Value subtract(Value other) {
         return ReflValue.INSTANCE;
     }
 
     @Override
-    public  Value multiply(Value other) {
+    public Value multiply(Value other) {
         return ReflValue.INSTANCE;
     }
 
     @Override
-    public  Value divide(Value other) throws EvalError {
+    public Value divide(Value other) throws EvalError {
         return ReflValue.INSTANCE;
     }
 
     @Override
-    public  Value and(Value other) {
+    public Value and(Value other) {
         if (isTruthy() && other.isTruthy()) {
             return NumberValue.TRUE;
         }
@@ -40,7 +40,7 @@ public abstract class FunctionValue implements Value {
     }
 
     @Override
-    public  Value or(Value other) {
+    public Value or(Value other) {
         if (isTruthy() || other.isTruthy()) {
             return NumberValue.TRUE;
         }
@@ -48,7 +48,7 @@ public abstract class FunctionValue implements Value {
     }
 
     @Override
-    public  Value compare(Value other) throws EvalError {
+    public Value compare(Value other) throws EvalError {
         if (this == other) {
             return NumberValue.TRUE;
         }
@@ -56,7 +56,7 @@ public abstract class FunctionValue implements Value {
     }
 
     @Override
-    public  Value not() {
+    public Value not() {
         return NumberValue.FALSE;
     }
 
@@ -66,17 +66,17 @@ public abstract class FunctionValue implements Value {
     }
 
     @Override
-    public  StringValue asString() {
+    public StringValue asString() {
         return new StringValue(toString());
     }
 
     @Override
-    public  NumberValue asNumber() {
+    public NumberValue asNumber() {
         return NumberValue.TRUE;
     }
 
     @Override
-    public  String getType() {
+    public String getType() {
         return "function";
     }
 

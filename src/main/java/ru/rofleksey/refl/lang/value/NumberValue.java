@@ -8,6 +8,7 @@ import ru.rofleksey.refl.lang.error.EvalError;
 import ru.rofleksey.refl.lang.error.NotCallableError;
 
 import java.util.List;
+import java.util.Map;
 
 public final class NumberValue implements Value {
     public static final NumberValue TRUE = new NumberValue(1);
@@ -24,22 +25,22 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public  Value add(Value other) {
+    public Value add(Value other) {
         return new NumberValue(value + other.asNumber().value);
     }
 
     @Override
-    public  Value subtract(Value other) {
+    public Value subtract(Value other) {
         return new NumberValue(value - other.asNumber().value);
     }
 
     @Override
-    public  Value multiply(Value other) {
+    public Value multiply(Value other) {
         return new NumberValue(value * other.asNumber().value);
     }
 
     @Override
-    public  Value divide(Value other) throws EvalError {
+    public Value divide(Value other) throws EvalError {
         var otherValue = other.asNumber().value;
         if (otherValue == 0) {
             throw new DivisionByZeroError();
@@ -48,7 +49,7 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public  Value and(Value other) {
+    public Value and(Value other) {
         if (isTruthy() && other.isTruthy()) {
             return TRUE;
         }
@@ -56,7 +57,7 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public  Value or(Value other) {
+    public Value or(Value other) {
         if (isTruthy() || other.isTruthy()) {
             return TRUE;
         }
@@ -64,7 +65,7 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public  Value compare(Value other) throws EvalError {
+    public Value compare(Value other) throws EvalError {
         if (!getType().equals(other.getType())) {
             return ReflValue.INSTANCE;
         }
@@ -73,7 +74,7 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public  Value not() {
+    public Value not() {
         if (isTruthy()) {
             return NumberValue.FALSE;
         }
@@ -81,7 +82,7 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public  Value call(ReflContext ctx, List<Value> args) throws NotCallableError {
+    public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws NotCallableError {
         throw new NotCallableError(toString());
     }
 
@@ -91,17 +92,17 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public  StringValue asString() {
+    public StringValue asString() {
         return new StringValue(toString());
     }
 
     @Override
-    public  NumberValue asNumber() {
+    public NumberValue asNumber() {
         return this;
     }
 
     @Override
-    public  String getType() {
+    public String getType() {
         return "number";
     }
 

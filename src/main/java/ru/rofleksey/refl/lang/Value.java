@@ -6,6 +6,7 @@ import ru.rofleksey.refl.lang.value.NumberValue;
 import ru.rofleksey.refl.lang.value.StringValue;
 
 import java.util.List;
+import java.util.Map;
 
 public interface Value {
     
@@ -24,8 +25,9 @@ public interface Value {
     Value compare(Value other) throws EvalError;
     
     Value not() throws EvalError;
-    
-    Value call(ReflContext ctx, List<Value> args) throws EvalError;
+
+    Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws EvalError;
+
     boolean isTruthy();
     
     StringValue asString();

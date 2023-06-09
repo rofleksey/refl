@@ -7,13 +7,13 @@ import ru.rofleksey.refl.lexer.LexemType;
 import java.util.Objects;
 
 public final class NumberLexem implements Lexem {
-    private final Integer value;
+    private final double value;
 
-    public NumberLexem(Integer value) {
+    public NumberLexem(double value) {
         this.value = value;
     }
 
-    public Integer value() {
+    public double value() {
         return value;
     }
 
@@ -27,7 +27,7 @@ public final class NumberLexem implements Lexem {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NumberLexem that = (NumberLexem) o;
-        return Objects.equals(value, that.value);
+        return Double.compare(that.value, value) == 0;
     }
 
     @Override

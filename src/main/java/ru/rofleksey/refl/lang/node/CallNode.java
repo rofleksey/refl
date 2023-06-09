@@ -6,26 +6,34 @@ import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public final class CallNode implements Node {
     private final Node child;
     private final List<Node> args;
+    private final Map<String, Node> namedArgs;
 
-    public CallNode(Node child, List<Node> args) {
+    public CallNode(Node child, List<Node> args, Map<String, Node> namedArgs) {
         this.child = child;
         this.args = args;
+        this.namedArgs = namedArgs;
     }
 
 
     @Override
-    public  Value evaluate(ReflContext ctx) throws EvalError {
-        var valueList = new ArrayList<Value>(args.size());
+    public Value evaluate(ReflContext ctx) throws EvalError {
+        var argsValueList = new ArrayList<Value>(args.size());
         for (var arg : args) {
-            valueList.add(arg.evaluate(ctx));
+            argsValueList.add(arg.evaluate(ctx));
         }
-        return child.evaluate(ctx).call(ctx, valueList);
+        var namedArgsValueMap = new HashMap<String, Value>();
+        for (var entry : namedArgs.entrySet()) {
+            namedArgsValueMap.put(entry.getKey(), entry.getValue().evaluate(ctx));
+        }
+        return child.evaluate(ctx).call(ctx, argsValueList, namedArgsValueMap);
     }
 
     @Override

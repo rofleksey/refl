@@ -12,6 +12,7 @@ import ru.rofleksey.refl.lang.value.ReflValue;
 import ru.rofleksey.refl.lexer.Lexer;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -135,7 +136,7 @@ class ParserTest {
 
     @Test
     public void testCycle() throws Throwable {
-        var lexems = lexer.process("x = 10; count = 0; while x > 0: if x / 2 == x / 2 * 2: count = count + 1; end; end; count;");
+        var lexems = lexer.process("x = 10; count = 0; while x > 0: if x / 2 == x / 2 * 2: count = count + 1; end; x = x - 1; end; count;");
         var result = parser.parse(lexems);
         assertEquals(4, result.size());
 
@@ -176,7 +177,7 @@ class ParserTest {
         var ctx = new ReflContext();
         ctx.setVar("print", new FunctionValue("print") {
             @Override
-            public  Value call(ReflContext ctx, List<Value> args) throws EvalError {
+            public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
                 reference.set(args.get(0).toString());
                 return ReflValue.INSTANCE;
             }
@@ -187,4 +188,28 @@ class ParserTest {
         assertEquals("hello world", reference.get());
     }
 
+    @Test
+    public void testNamedArgs() throws Throwable {
+        var lexems = lexer.process("test(2, value = 2);");
+        var result = parser.parse(lexems);
+        assertEquals(1, result.size());
+
+        var posReference = new AtomicReference<Double>();
+        var namedReference = new AtomicReference<Double>();
+
+        var ctx = new ReflContext();
+        ctx.setVar("test", new FunctionValue("test") {
+            @Override
+            public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
+                posReference.set(args.get(0).asNumber().getValue());
+                namedReference.set(namedArgs.get("value").asNumber().getValue());
+                return ReflValue.INSTANCE;
+            }
+        });
+
+        var evalResult = result.get(0).evaluate(ctx).asNumber().getValue();
+        assertEquals(0, evalResult);
+        assertEquals(2, posReference.get());
+        assertEquals(2, namedReference.get());
+    }
 }

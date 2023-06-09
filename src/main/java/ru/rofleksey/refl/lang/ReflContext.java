@@ -2,36 +2,38 @@ package ru.rofleksey.refl.lang;
 
 import ru.rofleksey.refl.lang.error.EvalError;
 import ru.rofleksey.refl.lang.error.VarUndefinedError;
-import ru.rofleksey.refl.std.StdExit;
-import ru.rofleksey.refl.std.StdWait;
+import ru.rofleksey.refl.std.*;
+import ru.rofleksey.refl.util.HandshakeChannel;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 public final class ReflContext {
     private final Map<String, Value> vars;
-    private final BlockingQueue<Value> waitQueue;
+    private final HandshakeChannel<Value> valueChannel = new HandshakeChannel<>();
+
 
     public ReflContext() {
         vars = new HashMap<>();
-        waitQueue = new ArrayBlockingQueue<>(1);
 
         vars.put("wait", new StdWait());
         vars.put("exit", new StdExit());
+        vars.put("random", new StdRandom());
+        vars.put("floor", new StdFloor());
+        vars.put("ceil", new StdCeil());
+        vars.put("round", new StdRound());
     }
 
     public void setVar(String name, Value value) {
         vars.put(name, value);
     }
 
-    public Value waitCtxInternal() throws InterruptedException {
-        return waitQueue.take();
+    public Value waitCtx() throws InterruptedException {
+        return valueChannel.read();
     }
 
     public boolean notifyCtx(Value value) {
-        return waitQueue.offer(value);
+        return valueChannel.write(value);
     }
 
     public Value getVar(String name) throws EvalError {

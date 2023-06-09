@@ -20,16 +20,16 @@ public final class Lexer {
         return length == what.length() + 1;
     }
 
-    private int parseNumber(String text) throws LexerError {
+    private double parseNumber(String text) throws LexerError {
         var startIndex = curPos;
         curPos++;
-        while (curPos < text.length() && Character.isDigit(text.charAt(curPos))) {
+        while (curPos < text.length() && (Character.isDigit(text.charAt(curPos)) || text.charAt(curPos) == '.')) {
             curPos++;
         }
         curPos--;
         var numberStr = text.substring(startIndex, curPos + 1);
         try {
-            return Integer.parseInt(numberStr);
+            return Double.parseDouble(numberStr);
         } catch (NumberFormatException e) {
             throw new LexerError("Failed to parse number '" + numberStr + "' at " + startIndex);
         }

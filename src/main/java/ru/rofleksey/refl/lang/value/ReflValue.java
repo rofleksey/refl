@@ -3,8 +3,10 @@ package ru.rofleksey.refl.lang.value;
 
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
+import ru.rofleksey.refl.lang.error.NotCallableError;
 
 import java.util.List;
+import java.util.Map;
 
 public final class ReflValue implements Value {
     public static final ReflValue INSTANCE = new ReflValue();
@@ -20,22 +22,22 @@ public final class ReflValue implements Value {
     }
 
     @Override
-    public  Value multiply(Value other) {
+    public Value multiply(Value other) {
         return INSTANCE;
     }
 
     @Override
-    public  Value divide(Value other) {
+    public Value divide(Value other) {
         return INSTANCE;
     }
 
     @Override
-    public  Value and(Value other) {
+    public Value and(Value other) {
         return NumberValue.FALSE;
     }
 
     @Override
-    public  Value or(Value other) {
+    public Value or(Value other) {
         if (other.isTruthy()) {
             return NumberValue.TRUE;
         }
@@ -43,18 +45,18 @@ public final class ReflValue implements Value {
     }
 
     @Override
-    public  Value compare(Value other) {
+    public Value compare(Value other) {
         return INSTANCE;
     }
 
     @Override
-    public  Value not() {
+    public Value not() {
         return INSTANCE;
     }
 
     @Override
-    public  Value call(ReflContext ctx, List<Value> args) {
-        return ReflValue.INSTANCE;
+    public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws NotCallableError {
+        throw new NotCallableError(toString());
     }
 
     @Override
@@ -63,7 +65,7 @@ public final class ReflValue implements Value {
     }
 
     @Override
-    public  StringValue asString() {
+    public StringValue asString() {
         return new StringValue(toString());
     }
 
