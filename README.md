@@ -15,7 +15,7 @@
 
 ```groovy
 dependencies {
-  implementation 'ru.rofleksey.refl:refl:0.0.2'
+  implementation 'ru.rofleksey.refl:refl:0.0.3'
 }
 ```
 
