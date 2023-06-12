@@ -4,31 +4,49 @@ package ru.rofleksey.refl.lang.node;
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
-import ru.rofleksey.refl.lang.value.ReflValue;
+import ru.rofleksey.refl.lang.error.NotReferencableError;
+import ru.rofleksey.refl.lang.value.NilValue;
 
 import java.util.List;
 
 public final class IfNode implements Node {
     private final Node condition;
-    private final List<Node> body;
+    private final Node body;
+    private final List<IfNode> elifNodes;
 
-    public IfNode(Node condition, List<Node> body) {
+    public IfNode(Node condition, Node body, List<IfNode> elifNodes) {
         this.condition = condition;
         this.body = body;
+        this.elifNodes = elifNodes;
     }
 
-
     @Override
-    public  Value evaluate(ReflContext ctx) throws EvalError {
-        Value result = ReflValue.INSTANCE;
-
+    public Value evaluate(ReflContext ctx) throws EvalError {
         if (condition.evaluate(ctx).isTruthy()) {
-            for (var node : body) {
-                result = node.evaluate(ctx);
+            var newCtx = ctx.createChild();
+            return body.evaluate(newCtx);
+        }
+
+        if (elifNodes != null) {
+            for (var node : elifNodes) {
+                if (node.condition == null || node.evaluate(ctx).isTruthy()) {
+                    var newCtx = ctx.createChild();
+                    return node.body.evaluate(newCtx);
+                }
             }
         }
 
-        return result;
+        return NilValue.INSTANCE;
+    }
+
+    @Override
+    public Value getLeftSide(ReflContext ctx) throws NotReferencableError {
+        throw new NotReferencableError(toString());
+    }
+
+    @Override
+    public Value getSetterKey(ReflContext ctx) throws EvalError {
+        return null;
     }
 
     @Override

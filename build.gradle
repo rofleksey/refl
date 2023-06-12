@@ -1,29 +1,71 @@
 plugins {
+    id 'idea'
     id 'java-library'
+    id 'antlr'
     id 'signing'
     id 'maven-publish'
 }
 
 group = 'ru.rofleksey.refl'
-version = '0.0.3'
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
+version = '0.0.4'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    antlr "org.antlr:antlr4:4.13.0"
+    implementation "org.antlr:antlr4-runtime:4.13.0"
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+generateGrammarSource {
+    doFirst {
+        new File("${projectDir}/src/generated/java/ru/rofleksey/refl".toString()).mkdirs()
+    }
+
+    maxHeapSize = "64m"
+    outputDirectory = file("${projectDir}/src/generated/java")
+    arguments += ["-lib",
+                  "${projectDir}/src/generated/java/ru/rofleksey/refl".toString(),
+                  "-visitor",
+                  "-long-messages",
+                  "-package", "ru.rofleksey.refl"]
+}
+
+clean {
+    delete file("${projectDir}/src/generated")
+}
+
+sourceSets {
+    generated {
+        java.srcDir "${projectDir}/src/generated/java/"
+    }
+
+    main {
+        java.srcDirs += "${projectDir}/src/generated/java/"
+    }
+}
+
+idea {
+    module {
+        sourceDirs += file("${projectDir}/src/generated/java")
+        generatedSourceDirs += file("${projectDir}/src/generated/java")
+    }
 }
 
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+sourcesJar.configure {
+    dependsOn("generateGrammarSource")
+}
+
+javadoc.configure {
+    dependsOn("generateGrammarSource")
 }
 
 publishing {
@@ -33,7 +75,7 @@ publishing {
             from components.java
             pom {
                 name = 'Refl'
-                description = 'Simple embeddable scripting language for Java'
+                description = 'Simple embeddable scripting language for Java and Android'
                 url = 'https://github.com/rofleksey/refl'
                 licenses {
                     license {

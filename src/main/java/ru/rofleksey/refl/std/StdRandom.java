@@ -15,7 +15,7 @@ public final class StdRandom extends FunctionValue {
     }
 
     @Override
-    public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
+    public Value call(ReflContext ctx, Value thisValue, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
         return new NumberValue(Math.random());
     }
 }

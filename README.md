@@ -1,6 +1,6 @@
 <h1 align="center">refl</h1>
 <p align="center">
-      Simple embeddable scripting language for Java 11+<br><br>
+      Simple embeddable scripting language for Java 11+ and Android<br><br>
 </p>
 
 --------
@@ -15,7 +15,7 @@
 
 ```groovy
 dependencies {
-  implementation 'ru.rofleksey.refl:refl:0.0.3'
+  implementation 'ru.rofleksey.refl:refl:0.0.4'
 }
 ```
 
@@ -25,7 +25,7 @@ dependencies {
 <dependency>
     <groupId>ru.rofleksey.refl</groupId>
     <artifactId>refl</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 
@@ -34,71 +34,129 @@ dependencies {
 Declare functions and variables via context and run script.
 
 ```java
+import ru.rofleksey.refl.lang.Refl;
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
+import ru.rofleksey.refl.lang.error.ParseError;
 import ru.rofleksey.refl.lang.value.FunctionValue;
+import ru.rofleksey.refl.lang.value.NilValue;
 import ru.rofleksey.refl.lang.value.NumberValue;
-import ru.rofleksey.refl.lang.value.ReflValue;
-import ru.rofleksey.refl.lexer.LexerError;
-import ru.rofleksey.refl.parser.error.ParserError;
 
 import java.util.List;
 import java.util.Map;
 
 public class Main {
-  public static void main(String[] args) throws ParserError, LexerError, EvalError {
-    var ctx = new ReflContext();
-    var compiler = new ReflCompiler();
+    public static void main(String[] args) throws EvalError, ParseError {
+        var ctx = ReflContext.empty();
 
-    ctx.setVar("x", new NumberValue(5));
-    ctx.setVar("print", new FunctionValue("print") {
-      @Override
-      public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) {
-        var prefix = namedArgs.get("prefix").toString();
-        args.forEach(it -> System.out.println(prefix + it.toString()));
-        return ReflValue.INSTANCE;
-      }
-    });
+        ctx.setVar("x", new NumberValue(5));
+        ctx.setVar("print", new FunctionValue("print") {
+            @Override
+            public Value call(ReflContext ctx, Value thisValue, List<Value> args, Map<String, Value> namedArgs) {
+                var prefix = namedArgs.get("prefix").toString();
+                args.forEach(it -> System.out.println(prefix + it.toString()));
+                return NilValue.INSTANCE;
+            }
+        });
 
-    var executor = compiler.compile("while x > 0: print(x, prefix = '>'); x = x - 1; end;");
-    var result = executor.execute(ctx);
-  }
+        var executor = Refl.compile("while x > 0 \n print(x, prefix ~ '>') \n x-- \n end");
+        var result = executor.execute(ReflContext.empty());
+    }
 }
 ```
 
 ## Language
 
-* operators: +, -, *, /, =, ==, <, >, &, |, !
-* keywords: if, while, end
-* types: number (double), string, refl (same as null), function (can be declared only via `ReflContext`)
+* operators: +, -, *, /, %, =, +=, -=, *=, /=, %=, ==, !=, <, <=, >, >=, &, |, !, ??, <<
+* keywords: if, while, end, fun, scope
+* types: number (double), string, nil, function, object
 * built-in functions:
-  * exit (stops execution, returns first argument or refl)
+  * exit (stops execution, returns first argument or nil)
   * wait (waits for `ReflContext.notifyCtx()` call)
   * sleep (calls Thread.sleep with first argument)
   * random, floor, ceil, round
   * string, number (conversion)
-
-* all variables are global
-* no support for function declarations inside code
 * logical operators return 1 or 0
-* function arguments can't be inlined expressions
 
-Grammar:
+## Syntax
 
 ```
-declList -> declList decl ; | decl ;
-decl -> if and : declList end | while and : declList end | var = and | and
-and -> orExp | and & orExp
-orExp -> notExp | orExp or notExp
-notExp -> rel | not rel
-rel -> add | add < add | add == add | add > add
-add -> mul | add + mul | add - mul
-mul -> unary | mul * unary | mul / unary
-unary -> term | - term
-term -> const | var | ( and ) | call
-call -> var ( args )
-args -> argsList | ϵ
-argsList -> argsList , var | argsList , const | argsList , namedArg | var | const | namedArg
-namedArg -> var = var | var = s
+# variable definitions
+var = 1
+
+# conditions
+if condition1
+  body1
+  body2
+elif condition2
+  body1
+  body2
+else
+  body1
+  body2
+end
+
+# loops
+while condition
+  body1
+  body2
+end
+
+# functions
+fun fact
+  result = 1
+  i = 2
+
+  while i <= it
+    result *= i
+    i++
+  end
+
+  result
+end
+
+fun concat
+  if args.length == 0
+    << nil
+  end
+
+  if args.length == 1
+    << args[0]
+  end
+
+  result = it
+  separator = args.separator ?? ''
+
+  i = 1
+  while i < args.length
+    result += separator + args[i]
+    i++
+  end
+
+  result
+end
+
+# scope (singleton struct)
+scope Math
+  PI = 3.14
+
+  fun min
+    result = it
+    i = 1
+
+    while i < args.length
+      if args[i] < result
+        result = args[i]
+      fi
+      i++
+    end
+
+    result
+  end
+  ...
+end
+
+pi = Math.PI
+z = Math.min(x, y)
 ```

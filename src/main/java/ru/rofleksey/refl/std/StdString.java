@@ -15,7 +15,7 @@ public final class StdString extends FunctionValue {
     }
 
     @Override
-    public StringValue call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
+    public StringValue call(ReflContext ctx, Value thisValue, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
         if (args.isEmpty()) {
             return StringValue.EMPTY;
         }

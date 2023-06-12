@@ -4,46 +4,48 @@ package ru.rofleksey.refl.lang.node;
 import ru.rofleksey.refl.lang.ReflContext;
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
+import ru.rofleksey.refl.lang.error.NoObjectContextError;
+import ru.rofleksey.refl.lang.operator.CompareOperator;
 import ru.rofleksey.refl.lang.value.NumberValue;
-
-import java.util.function.Predicate;
+import ru.rofleksey.refl.lang.value.ValueType;
 
 public final class CompareNode implements Node {
-    public static final Predicate<Double> LT = value -> value < 0;
-    public static final Predicate<Double> EQ = value -> value == 0;
-    public static final Predicate<Double> GT = value -> value > 0;
-    private final Predicate<Double> predicate;
+    private final CompareOperator operator;
     private final Node left;
     private final Node right;
 
-    public CompareNode(Predicate<Double> predicate, Node left, Node right) {
-        this.predicate = predicate;
+    public CompareNode(CompareOperator operator, Node left, Node right) {
+        this.operator = operator;
         this.left = left;
         this.right = right;
     }
 
 
     @Override
-    public  Value evaluate(ReflContext ctx) throws EvalError {
+    public Value evaluate(ReflContext ctx) throws EvalError {
         var compare = left.evaluate(ctx).compare(right.evaluate(ctx));
-        if (compare.getType().equals("refl")) {
+        if (compare.getType() == ValueType.NIL) {
             return NumberValue.FALSE;
         }
         var num = compare.asNumber();
-        if (predicate.test(num.getValue())) {
+        if (operator.test(num.getValue())) {
             return NumberValue.TRUE;
         }
         return NumberValue.FALSE;
     }
 
     @Override
+    public Value getLeftSide(ReflContext ctx) throws EvalError {
+        throw new NoObjectContextError(toString());
+    }
+
+    @Override
+    public Value getSetterKey(ReflContext ctx) throws EvalError {
+        return null;
+    }
+
+    @Override
     public String toString() {
-        if (predicate == LT) {
-            return "(" + left.toString() + "<" + right.toString() + ")";
-        }
-        if (predicate == GT) {
-            return "(" + left.toString() + ">" + right.toString() + ")";
-        }
-        return "(" + left.toString() + "==" + right.toString() + ")";
+        return "(" + left.toString() + operator.toString() + right.toString() + ")";
     }
 }

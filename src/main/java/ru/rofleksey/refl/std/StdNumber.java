@@ -15,7 +15,7 @@ public final class StdNumber extends FunctionValue {
     }
 
     @Override
-    public NumberValue call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
+    public NumberValue call(ReflContext ctx, Value thisValue, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
         if (args.isEmpty()) {
             return NumberValue.FALSE;
         }

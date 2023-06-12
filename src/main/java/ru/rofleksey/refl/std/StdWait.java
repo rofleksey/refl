@@ -15,7 +15,7 @@ public final class StdWait extends FunctionValue {
     }
 
     @Override
-    public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
+    public Value call(ReflContext ctx, Value thisValue, List<Value> args, Map<String, Value> namedArgs) throws EvalError {
         try {
             return ctx.waitCtx();
         } catch (InterruptedException e) {
