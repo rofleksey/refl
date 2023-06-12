@@ -3,6 +3,7 @@ package ru.rofleksey.refl.lang.value;
 
 import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.EvalError;
+import ru.rofleksey.refl.lang.error.NotReferencableError;
 
 public abstract class FunctionValue implements Value {
     private final String name;
@@ -12,52 +13,11 @@ public abstract class FunctionValue implements Value {
     }
 
     @Override
-    public Value add(Value other) {
-        return ReflValue.INSTANCE;
-    }
-
-    @Override
-    public Value subtract(Value other) {
-        return ReflValue.INSTANCE;
-    }
-
-    @Override
-    public Value multiply(Value other) {
-        return ReflValue.INSTANCE;
-    }
-
-    @Override
-    public Value divide(Value other) throws EvalError {
-        return ReflValue.INSTANCE;
-    }
-
-    @Override
-    public Value and(Value other) {
-        if (isTruthy() && other.isTruthy()) {
-            return NumberValue.TRUE;
-        }
-        return NumberValue.FALSE;
-    }
-
-    @Override
-    public Value or(Value other) {
-        if (isTruthy() || other.isTruthy()) {
-            return NumberValue.TRUE;
-        }
-        return NumberValue.FALSE;
-    }
-
-    @Override
     public Value compare(Value other) throws EvalError {
         if (this == other) {
             return NumberValue.TRUE;
         }
-        return ReflValue.INSTANCE;
-    }
-
-    @Override
-    public Value not() {
-        return NumberValue.FALSE;
+        return NilValue.INSTANCE;
     }
 
     @Override
@@ -66,22 +26,22 @@ public abstract class FunctionValue implements Value {
     }
 
     @Override
-    public StringValue asString() {
-        return new StringValue(toString());
-    }
-
-    @Override
-    public NumberValue asNumber() {
-        return NumberValue.TRUE;
-    }
-
-    @Override
-    public String getType() {
-        return "function";
+    public ValueType getType() {
+        return ValueType.FUNCTION;
     }
 
     @Override
     public String toString() {
-        return "function "+name + "{}";
+        return "fun " + name;
+    }
+
+    @Override
+    public void setVar(Value key, Value value) throws EvalError {
+        throw new NotReferencableError(toString());
+    }
+
+    @Override
+    public Value getVar(Value key) throws EvalError {
+        throw new NotReferencableError(toString());
     }
 }

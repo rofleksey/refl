@@ -6,9 +6,11 @@ import ru.rofleksey.refl.lang.Value;
 import ru.rofleksey.refl.lang.error.DivisionByZeroError;
 import ru.rofleksey.refl.lang.error.EvalError;
 import ru.rofleksey.refl.lang.error.NotCallableError;
+import ru.rofleksey.refl.lang.error.NotReferencableError;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public final class NumberValue implements Value {
     public static final NumberValue TRUE = new NumberValue(1);
@@ -49,40 +51,25 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public Value and(Value other) {
-        if (isTruthy() && other.isTruthy()) {
-            return TRUE;
+    public Value mod(Value other) throws EvalError {
+        var otherValue = other.asNumber().value;
+        if (otherValue == 0) {
+            throw new DivisionByZeroError();
         }
-        return FALSE;
-    }
-
-    @Override
-    public Value or(Value other) {
-        if (isTruthy() || other.isTruthy()) {
-            return TRUE;
-        }
-        return FALSE;
+        return new NumberValue(value % otherValue);
     }
 
     @Override
     public Value compare(Value other) throws EvalError {
         if (!getType().equals(other.getType())) {
-            return ReflValue.INSTANCE;
+            return NilValue.INSTANCE;
         }
         var otherNumber = other.asNumber();
         return new NumberValue(Double.compare(value, otherNumber.value));
     }
 
     @Override
-    public Value not() {
-        if (isTruthy()) {
-            return NumberValue.FALSE;
-        }
-        return NumberValue.TRUE;
-    }
-
-    @Override
-    public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) throws NotCallableError {
+    public Value call(ReflContext ctx, Value thisValue, List<Value> args, Map<String, Value> namedArgs) throws NotCallableError {
         throw new NotCallableError(toString());
     }
 
@@ -92,22 +79,40 @@ public final class NumberValue implements Value {
     }
 
     @Override
-    public StringValue asString() {
-        return new StringValue(toString());
-    }
-
-    @Override
     public NumberValue asNumber() {
         return this;
     }
 
     @Override
-    public String getType() {
-        return "number";
+    public ValueType getType() {
+        return ValueType.NUMBER;
+    }
+
+    @Override
+    public void setVar(Value key, Value value) throws EvalError {
+        throw new NotReferencableError(toString());
+    }
+
+    @Override
+    public Value getVar(Value key) throws EvalError {
+        throw new NotReferencableError(toString());
     }
 
     @Override
     public String toString() {
         return Double.toString(value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NumberValue that = (NumberValue) o;
+        return Double.compare(that.value, value) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

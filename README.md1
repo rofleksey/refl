@@ -1,0 +1,217 @@
+<h1 align="center">refl</h1>
+<p align="center">
+      Simple embeddable scripting language for Java 11+ and Android<br><br>
+</p>
+
+--------
+
+[![Java 11+](https://img.shields.io/badge/java-11-4c7e9f.svg)](http://java.oracle.com)
+[![License](https://img.shields.io/badge/license-MIT-4c7e9f.svg)](https://raw.githubusercontent.com/rofleksey/refl/main/LICENSE.txt)
+[![Maven Central](https://img.shields.io/maven-central/v/ru.rofleksey.refl/refl)](https://central.sonatype.com/artifact/ru.rofleksey.refl/refl)
+
+## Installation
+
+#### Gradle
+
+```groovy
+dependencies {
+  implementation 'ru.rofleksey.refl:refl:0.0.3'
+}
+```
+
+#### Maven
+
+```xml
+<dependency>
+    <groupId>ru.rofleksey.refl</groupId>
+    <artifactId>refl</artifactId>
+    <version>0.0.1</version>
+</dependency>
+```
+
+## Usage
+
+Declare functions and variables via context and run script.
+
+```java
+import ru.rofleksey.refl.lang.ReflContext;
+import ru.rofleksey.refl.lang.Value;
+import ru.rofleksey.refl.lang.error.EvalError;
+import ru.rofleksey.refl.lang.value.FunctionValue;
+import ru.rofleksey.refl.lang.value.NumberValue;
+import ru.rofleksey.refl.lang.value.NilValue;
+import ru.rofleksey.refl.lexer.LexerError;
+import ru.rofleksey.refl.parser.error.ParserError;
+
+import java.util.List;
+import java.util.Map;
+
+public class Main {
+  public static void main(String[] args) throws ParserError, LexerError, EvalError {
+    var ctx = new ReflContext();
+    var compiler = new ReflCompiler();
+
+    ctx.setVar("x", new NumberValue(5));
+    ctx.setVar("print", new FunctionValue("print") {
+      @Override
+      public Value call(ReflContext ctx, List<Value> args, Map<String, Value> namedArgs) {
+        var prefix = namedArgs.get("prefix").toString();
+        args.forEach(it -> System.out.println(prefix + it.toString()));
+        return ReflValue.INSTANCE;
+      }
+    });
+
+    var executor = compiler.compile("while x > 0: print(x, prefix = '>') \n x = x - 1 \n end \n");
+    var result = executor.execute(ctx);
+  }
+}
+```
+
+## Language
+
+* operators: +, -, *, /, =, +=, -=, *=, /=, ==, !=, <, <=, >, >=, &, |, !
+* keywords: if, while, end, fun, def, struct, scope
+* types: number (double), string, nil, function, list, object
+* built-in functions:
+  * exit (stops execution, returns first argument or nil)
+  * wait (waits for `ReflContext.notifyCtx()` call)
+  * sleep (calls Thread.sleep with first argument)
+  * random, floor, ceil, round
+  * string, number (conversion)
+  * object, list (creation)
+* all variables are global
+* no support for function declarations inside code
+* logical operators return 1 or 0
+* function arguments can't be inlined expressions
+
+## Syntax
+
+```
+# variable definitions
+glob globalVar = 1
+localVar = 1
+
+# conditions
+if condition1
+  body1
+  body2
+elif condition2
+  body1
+  body2
+else
+  body1
+  body2
+end
+
+# loops
+while condition
+  body1
+  body2
+
+  break
+
+  continue
+end
+
+# functions
+fun fact
+  result = 1
+  i = 2
+
+  while i <= it:
+    result *= i
+    i++
+  end
+
+  result
+end
+
+fun concat:
+  len = args.length
+
+  if len == 0:
+    << nil
+  fi
+
+  if len == 1:
+    << args[0]
+  fi
+
+  result = it
+  separator = args.separator ?? ''
+
+  i = 1
+  while i < args.length:
+    result += separator + args[i]
+    i += 1
+  end
+
+  << result
+end
+
+smolFunc = $ it.field == 1
+
+anonymousFunc = $$
+  body1
+  body2
+end
+
+# structs
+
+struct point:
+  x = args[0] ?? 0
+  y = args[1] ?? 0
+
+  fun distanceTo:
+    dist = math::sqrt(x * it.x + y * it.y)
+    << dist
+  end
+
+  def isEqualTo:
+    other = args.get(1)
+    result = it.x == other.x & it.y == other.y
+    << result
+  end
+end
+
+p1 = point::new()
+p2 = point::new(1, 2)
+dist = p1.distanceTo(p2)
+eq = point::isEqualTo(p1, p2)
+
+# spaces (read-only static-only singleton struct)
+space math:
+  pi = 3.14
+
+  def min:
+    result = it
+    len = args.len()
+    i = 1
+
+    while i < len:
+      if args[i] < result
+        result = args[i]
+      fi
+      i += 1
+    end
+
+    << result
+  ...
+end
+
+pi = math::pi
+z = math::min(x, y)
+
+# objects (anonymous structs)
+obj := object()
+obj['hello'] =  'world'
+obj['hello']
+obj.hello
+obj.hello = 'rofleksey'
+
+# lists
+arr = list()
+arr.push(1)
+arr[1]
+arr.pop()
+```
