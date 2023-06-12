@@ -1,5 +1,6 @@
 package ru.rofleksey.refl.lang.parse;
 
+import org.apache.commons.text.StringEscapeUtils;
 import ru.rofleksey.refl.ReflParser;
 import ru.rofleksey.refl.ReflParserBaseVisitor;
 import ru.rofleksey.refl.lang.node.*;
@@ -290,7 +291,7 @@ public class ReflVisitor extends ReflParserBaseVisitor<Node> {
     @Override
     public Node visitStringLiteral(ReflParser.StringLiteralContext ctx) {
         var str = ctx.getText();
-        var actualStr = str.substring(1, str.length() - 1);
+        var actualStr = StringEscapeUtils.unescapeJava(str.substring(1, str.length() - 1));
         return new ConstNode(new StringValue(actualStr));
     }
 

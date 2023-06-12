@@ -33,6 +33,13 @@ class ReflTest {
     }
 
     @Test
+    public void testEscapedStringLiteral() throws EvalError, ParseError {
+        var compiled = Refl.compile("\"\\\"\"");
+        var resultValue = compiled.execute(ReflContext.empty());
+        assertEquals("\"", resultValue.toString());
+    }
+
+    @Test
     public void testEmptyStringLiteral() throws EvalError, ParseError {
         var compiled = Refl.compile("\"\"");
         var resultValue = compiled.execute(ReflContext.empty());
@@ -175,6 +182,13 @@ class ReflTest {
         var compiled = Refl.compile("fun echo \n args.text + '!' \n end \n echo(text ~ 'hello world')");
         var resultValue = compiled.execute(ReflContext.empty());
         assertEquals("hello world!", resultValue.toString());
+    }
+
+    @Test
+    public void testMultipleArgs() throws EvalError, ParseError {
+        var compiled = Refl.compile("fun add \n (args[0] + args[1]) * args.mult \n end \n add(4, 5, mult ~ 2)");
+        var resultValue = compiled.execute(ReflContext.empty());
+        assertEquals(18.0, resultValue.asNumber().getValue());
     }
 
     @Test

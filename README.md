@@ -14,9 +14,7 @@
 #### Gradle
 
 ```groovy
-dependencies {
-  implementation 'ru.rofleksey.refl:refl:0.0.4'
-}
+implementation 'ru.rofleksey.refl:refl:0.0.6'
 ```
 
 #### Maven
@@ -24,8 +22,8 @@ dependencies {
 ```xml
 <dependency>
     <groupId>ru.rofleksey.refl</groupId>
-    <artifactId>refl</artifactId>
-    <version>0.0.4</version>
+  <artifactId>refl</artifactId>
+  <version>0.0.6</version>
 </dependency>
 ```
 

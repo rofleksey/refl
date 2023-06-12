@@ -69,7 +69,7 @@ simpleExpression
     ;
 
 methodCall
-    : name=IDENTIFIER LPAREN argument* RPAREN
+    : name=IDENTIFIER LPAREN argument? (COMMA argument)* RPAREN
     ;
 
 argument
