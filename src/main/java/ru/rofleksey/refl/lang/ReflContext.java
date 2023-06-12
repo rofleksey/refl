@@ -2,7 +2,9 @@ package ru.rofleksey.refl.lang;
 
 import ru.rofleksey.refl.lang.error.EvalError;
 import ru.rofleksey.refl.lang.error.VarUndefinedError;
+import ru.rofleksey.refl.lang.value.ObjectValue;
 import ru.rofleksey.refl.lang.value.ValueType;
+import ru.rofleksey.refl.std.*;
 import ru.rofleksey.refl.util.HandshakeChannel;
 
 import java.util.HashMap;
@@ -30,6 +32,24 @@ public final class ReflContext implements Value {
         }
 
         vars = new HashMap<>();
+
+        try {
+            setVar("wait", new StdWait());
+            setVar("sleep", new StdSleep());
+            setVar("exit", new StdExit());
+
+            var math = new ObjectValue();
+            math.setVar("random", new StdRandom());
+            math.setVar("floor", new StdFloor());
+            math.setVar("ceil", new StdCeil());
+            math.setVar("round", new StdRound());
+            setVar("Math", math);
+
+            setVar("string", new StdString());
+            setVar("number", new StdNumber());
+        } catch (EvalError ignored) {
+
+        }
     }
 
     public static ReflContext empty() {
@@ -56,20 +76,6 @@ public final class ReflContext implements Value {
     public ReflContext shallowRootClone() {
         return new ReflContext(rootCtx, null);
     }
-
-//    public ReflContext initStd() {
-//        vars.put("wait", new StdWait());
-//        vars.put("sleep", new StdSleep());
-//        vars.put("exit", new StdExit());
-//        vars.put("random", new StdRandom());
-//        vars.put("floor", new StdFloor());
-//        vars.put("ceil", new StdCeil());
-//        vars.put("round", new StdRound());
-//        vars.put("string", new StdString());
-//        vars.put("number", new StdNumber());
-//
-//        return this;
-//    }
 
     @Override
     public ValueType getType() {
