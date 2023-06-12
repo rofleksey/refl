@@ -108,7 +108,7 @@ fun fact
   result = 1
   i = 2
 
-  while i <= it:
+  while i <= it
     result *= i
     i++
   end
@@ -117,13 +117,11 @@ fun fact
 end
 
 fun concat
-  len = args.length
-
-  if len == 0
+  if args.length == 0
     << nil
   end
 
-  if len == 1
+  if args.length == 1
     << args[0]
   end
 
