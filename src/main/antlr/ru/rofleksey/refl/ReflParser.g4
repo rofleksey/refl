@@ -74,7 +74,7 @@ methodCall
 
 argument
     : simpleExpression
-    | name=IDENTIFIER EQUAL simpleExpression
+    | name=IDENTIFIER TILDE simpleExpression
     ;
 
 primaryExpression

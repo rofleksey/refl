@@ -41,6 +41,9 @@ public final class ReflContext implements Value {
     }
 
     public ReflContext shallowClone() {
+        if (parentCtx == null) {
+            return createChild();
+        }
         var clone = new ReflContext(parentCtx, objectCtx);
         clone.vars.putAll(vars);
         return clone;

@@ -3,6 +3,7 @@ package ru.rofleksey.refl.lang;
 import org.junit.jupiter.api.Test;
 import ru.rofleksey.refl.lang.error.EvalError;
 import ru.rofleksey.refl.lang.error.ParseError;
+import ru.rofleksey.refl.lang.error.VarUndefinedError;
 import ru.rofleksey.refl.lang.value.NilValue;
 import ru.rofleksey.refl.lang.value.NumberValue;
 
@@ -170,6 +171,13 @@ class ReflTest {
     }
 
     @Test
+    public void testNamedArgs() throws EvalError, ParseError {
+        var compiled = Refl.compile("fun echo \n args.text + '!' \n end \n echo(text ~ 'hello world')");
+        var resultValue = compiled.execute(ReflContext.empty());
+        assertEquals("hello world!", resultValue.toString());
+    }
+
+    @Test
     public void testFuncContext() throws EvalError, ParseError {
         var compiled = Refl.compile("fun fact \n result = 1 \n i = 2 \n while i <= it \n result *= i \n i++ \n end \n result \n end \n fact(6)");
         var resultValue = compiled.execute(ReflContext.empty());
@@ -184,9 +192,53 @@ class ReflTest {
     }
 
     @Test
-    public void testGlobalCtxAssign() throws EvalError, ParseError {
+    public void testIfGlobalScope() throws EvalError, ParseError {
+        var compiled = Refl.compile("x = 1 \n if 1 \n x = 2 \n end \n x");
+        var resultValue = compiled.execute(ReflContext.empty());
+        assertEquals(2, resultValue.asNumber().getValue());
+    }
+
+    @Test
+    public void testIfLocalScope() throws ParseError {
+        var compiled = Refl.compile("if 1 \n x = 2 \n end \n x");
+        assertThrows(VarUndefinedError.class, () -> {
+            compiled.execute(ReflContext.empty());
+        });
+    }
+
+    @Test
+    public void testFuncGlobalScope() throws EvalError, ParseError {
         var compiled = Refl.compile("x = 1 \n fun test \n x = 2 \n end \n test() \n x");
         var resultValue = compiled.execute(ReflContext.empty());
         assertEquals(2, resultValue.asNumber().getValue());
+    }
+
+    @Test
+    public void testFuncLocalScope() throws ParseError {
+        var compiled = Refl.compile("fun test \n x = 2 \n end \n test() \n x");
+        assertThrows(VarUndefinedError.class, () -> {
+            compiled.execute(ReflContext.empty());
+        });
+    }
+
+    @Test
+    public void testFuncLocalIfScope() throws ParseError, EvalError {
+        var compiled = Refl.compile("if 1 \n x = 1 \n fun test \n x = 2 \n end \n test() \n x \n end");
+        var resultValue = compiled.execute(ReflContext.empty());
+        assertEquals(1, resultValue.asNumber().getValue());
+    }
+
+    @Test
+    public void testFuncGlobalIfScope() throws ParseError, EvalError {
+        var compiled = Refl.compile("y = 1 \n if 1 \n fun test \n y = 2 \n end \n test() \n end \n y");
+        var resultValue = compiled.execute(ReflContext.empty());
+        assertEquals(2, resultValue.asNumber().getValue());
+    }
+
+    @Test
+    public void testScope() throws ParseError, EvalError {
+        var compiled = Refl.compile("pi = 3.14 \n scope Math \n fun getPi \n pi \n end \n end \n Math.getPi()");
+        var resultValue = compiled.execute(ReflContext.empty());
+        assertEquals(3.14, resultValue.asNumber().getValue());
     }
 }
