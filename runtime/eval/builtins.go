@@ -1,14 +1,16 @@
 package eval
 
 import (
+	"context"
 	"iter"
 	"refl/runtime"
 	"refl/runtime/objects"
 )
 
 type builtinFunction struct {
+	ctx  context.Context
 	name string
-	fn   func([]runtime.Object) (runtime.Object, *runtime.Error)
+	fn   func(context.Context, []runtime.Object) (runtime.Object, *runtime.Error)
 }
 
 func (f *builtinFunction) Type() runtime.ObjectType { return runtime.FunctionType }
@@ -20,7 +22,7 @@ func (f *builtinFunction) Equal(other runtime.Object) bool {
 func (f *builtinFunction) Clone() runtime.Object { return f }
 
 func (f *builtinFunction) Call(args []runtime.Object) (runtime.Object, *runtime.Error) {
-	return f.fn(args)
+	return f.fn(f.ctx, args)
 }
 func (f *builtinFunction) Not() runtime.Object {
 	return objects.NewBoolean(!f.Truthy())
@@ -29,21 +31,21 @@ func (f *builtinFunction) HashKey() runtime.HashKey {
 	return runtime.HashKey("builtin_" + f.name)
 }
 
-func builtinTypeFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinTypeFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
 	if len(args) != 1 {
 		return nil, runtime.NewError("type() expects exactly 1 argument", 0, 0)
 	}
 	return objects.NewString(string(args[0].Type())), nil
 }
 
-func builtinStrFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinStrFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
 	if len(args) != 1 {
 		return nil, runtime.NewError("str() expects exactly 1 argument", 0, 0)
 	}
 	return objects.NewString(args[0].String()), nil
 }
 
-func builtinNumberFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinNumberFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
 	if len(args) != 1 {
 		return nil, runtime.NewError("number() expects exactly 1 argument", 0, 0)
 	}
@@ -58,7 +60,7 @@ func builtinNumberFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
 	}
 }
 
-func builtinLenFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinLenFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
 	if len(args) != 1 {
 		return nil, runtime.NewError("len() expects exactly 1 argument", 0, 0)
 	}
@@ -71,7 +73,7 @@ func builtinLenFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
 	return objects.NewNumber(float64(indexable.Length())), nil
 }
 
-func builtinCloneFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
 	if len(args) != 1 {
 		return nil, runtime.NewError("clone() expects exactly 1 argument", 0, 0)
 	}
@@ -81,7 +83,7 @@ func builtinCloneFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
 	return obj.Clone(), nil
 }
 
-func builtinExitFunc(args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinExitFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
 	msg := "exit called"
 	if len(args) > 0 {
 		msg = args[0].String()

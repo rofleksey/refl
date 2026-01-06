@@ -2,12 +2,14 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"refl/ast"
 	"strings"
+	"time"
 
 	"refl/parser"
 	"refl/runtime"
@@ -114,7 +116,10 @@ func createGlobalEnvironment() *runtime.Environment {
 }
 
 func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, *runtime.Error) {
-	result, err := eval.Eval(program, env)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := eval.Eval(ctx, program, env)
 	if err != nil {
 		return nil, err
 	}

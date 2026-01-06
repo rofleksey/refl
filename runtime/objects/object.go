@@ -135,6 +135,10 @@ func (o *ReflObject) Set(key, value runtime.Object) *runtime.Error {
 	return nil
 }
 
+func (o *ReflObject) SetLiteral(key string, value runtime.Object) {
+	_ = o.Set(NewString(key), value)
+}
+
 func (o *ReflObject) Length() int {
 	return len(o.numFields) + len(o.otherFields)
 }
