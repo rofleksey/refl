@@ -1,11 +1,13 @@
 package eval
 
 import (
+	"context"
 	"refl/ast"
 	"refl/parser"
 	"refl/runtime"
 	"refl/runtime/objects"
 	"testing"
+	"time"
 )
 
 func TestEvalNumberLiteral(t *testing.T) {
@@ -21,9 +23,12 @@ func TestEvalNumberLiteral(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -46,9 +51,12 @@ func TestEvalStringLiteral(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -58,9 +66,12 @@ func TestEvalStringLiteral(t *testing.T) {
 }
 
 func TestEvalNilLiteral(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	program := parseProgram(t, "nil")
 	env := runtime.NewEnvironment(nil)
-	result, err := Eval(program, env)
+	result, err := Eval(ctx, program, env)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -110,9 +121,12 @@ func TestEvalBooleanExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -139,9 +153,12 @@ func TestEvalArithmeticExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error evaluating %s: %v", tt.input, err)
 		}
@@ -163,9 +180,12 @@ func TestEvalStringConcatenation(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -187,9 +207,12 @@ func TestEvalVarDeclaration(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -218,9 +241,12 @@ func TestEvalAssignment(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -243,9 +269,12 @@ func TestEvalIfStatement(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -272,9 +301,12 @@ func TestEvalWhileStatement(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -295,9 +327,12 @@ func TestEvalForStatement(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -307,10 +342,13 @@ func TestEvalForStatement(t *testing.T) {
 }
 
 func TestEvalFunctionLiteral(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	input := "fun (x) { x + 1 }"
 	program := parseProgram(t, input)
 	env := runtime.NewEnvironment(nil)
-	result, err := Eval(program, env)
+	result, err := Eval(ctx, program, env)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -333,9 +371,12 @@ func TestEvalFunctionCall(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -357,9 +398,12 @@ func TestEvalObjectLiteral(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -399,9 +443,12 @@ c:inc()`, 6},
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -433,9 +480,12 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -482,9 +532,12 @@ func TestEvalErrors(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		_, err := Eval(program, env)
+		_, err := Eval(ctx, program, env)
 
 		if tt.expectError && err == nil {
 			t.Errorf("expected error for input: %s, got nil", tt.input)
@@ -495,6 +548,9 @@ func TestEvalErrors(t *testing.T) {
 }
 
 func TestEvalGlobalVariable(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	input := `var x = 10
 var getGlobal = fun () {
     var global = $
@@ -504,7 +560,7 @@ getGlobal()`
 
 	program := parseProgram(t, input)
 	env := runtime.NewEnvironment(nil)
-	result, err := Eval(program, env)
+	result, err := Eval(ctx, program, env)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -513,6 +569,9 @@ getGlobal()`
 }
 
 func TestEvalArgsVariable(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	input := `var sumArgs = fun () {
     var total = 0
     for i, val in args {
@@ -524,7 +583,7 @@ sumArgs(1, 2, 3, 4)`
 
 	program := parseProgram(t, input)
 	env := runtime.NewEnvironment(nil)
-	result, err := Eval(program, env)
+	result, err := Eval(ctx, program, env)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -546,9 +605,12 @@ func TestEvalGlobalVsLocalVariables(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -570,9 +632,12 @@ func TestEvalVariableShadowing(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -621,9 +686,12 @@ times3(2) + times4(2)`, 14},
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -680,9 +748,12 @@ result`, 12},
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -729,9 +800,12 @@ outer()`, 1},
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -770,9 +844,12 @@ recursive(5)`, 15},
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -818,9 +895,12 @@ nested(42, 100)`, 35},
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -867,9 +947,12 @@ test()`, 2},
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -894,9 +977,12 @@ test()`, 2},
 	}
 
 	for _, tt := range tests {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		program := parseProgram(t, tt.input)
 		env := runtime.NewEnvironment(nil)
-		result, err := Eval(program, env)
+		result, err := Eval(ctx, program, env)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -905,6 +991,9 @@ test()`, 2},
 }
 
 func TestEvalComplexClosureChain(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	input := `var makeBankAccount = fun(initial) {
     var balance = initial
     return {
@@ -927,7 +1016,7 @@ account:getBalance()`
 
 	program := parseProgram(t, input)
 	env := runtime.NewEnvironment(nil)
-	result, err := Eval(program, env)
+	result, err := Eval(ctx, program, env)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -935,6 +1024,9 @@ account:getBalance()`
 }
 
 func TestEvalEnvironmentChain(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	input := `var globalVar = 10
 outer = fun () {
     var outerVar = 20
@@ -952,7 +1044,7 @@ outer()`
 
 	program := parseProgram(t, input)
 	env := runtime.NewEnvironment(nil)
-	result, err := Eval(program, env)
+	result, err := Eval(ctx, program, env)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

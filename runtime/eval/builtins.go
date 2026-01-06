@@ -106,8 +106,26 @@ func builtinEvalFunc(ctx context.Context, args []runtime.Object) (runtime.Object
 	return result, nil
 }
 
+func builtinNewErrFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
+	if len(args) != 1 {
+		return nil, runtime.NewPanic("newerr() expects exactly 1 argument", 0, 0)
+	}
+
+	return objects.NewError(args[0].String()), nil
+}
+
+func builtinIsErrFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
+	if len(args) != 1 {
+		return nil, runtime.NewPanic("iserr() expects exactly 1 argument", 0, 0)
+	}
+
+	_, ok := args[0].(*objects.UserError)
+
+	return objects.NewBoolean(ok), nil
+}
+
 func builtinPanicFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
-	msg := "exit called"
+	msg := "< no message >"
 	if len(args) > 0 {
 		msg = args[0].String()
 	}

@@ -12,10 +12,16 @@ func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (
 	env.Define("runtime", runtimeObj)
 
 	defEnvBuiltinFunc(ctx, "panic", env, builtinPanicFunc)
+
+	defEnvBuiltinFunc(ctx, "newerr", env, builtinNewErrFunc)
+	defEnvBuiltinFunc(ctx, "iserr", env, builtinIsErrFunc)
+
 	defEnvBuiltinFunc(ctx, "type", env, builtinTypeFunc)
 	defEnvBuiltinFunc(ctx, "str", env, builtinStrFunc)
 	defEnvBuiltinFunc(ctx, "number", env, builtinNumberFunc)
+
 	defEnvBuiltinFunc(ctx, "len", env, builtinLenFunc)
+
 	defEnvBuiltinFunc(ctx, "clone", env, builtinCloneFunc)
 	defEnvBuiltinFunc(ctx, "eval", env, builtinEvalFunc)
 
