@@ -6,7 +6,7 @@ A simple scripting language interpreter written in Go.
 
 Refl is an interpreted language where everything is an object (except `nil`). The language features:
 
-- **Simple Types**: `nil`, `number`, `string`, `object`, `function`
+- **Simple Types**: `nil`, `number`, `string`, `object`, `function`, `error`
 - **Objects everywhere**: All values are objects with key/value pairs
 - **No Booleans**: `0`, `nil` and `""` are "false", anything else is "true"
 - **Dynamic Typing**: No type declarations needed
@@ -45,4 +45,6 @@ while condition {
 for key, value in obj {
     # iterate over object or string
 }
+
+"6" + 7 # "67"
 ```

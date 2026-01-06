@@ -8,12 +8,14 @@ import (
 )
 
 func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
-	runtimeObj := objects.NewObject()
-	env.Define("runtime", runtimeObj)
+	env.Define("math", createMathObject(ctx))
+	env.Define("strings", createStringObject(ctx))
+	env.Define("io", createIoObject(ctx))
 
 	defEnvBuiltinFunc(ctx, "panic", env, builtinPanicFunc)
 
 	defEnvBuiltinFunc(ctx, "newerr", env, builtinNewErrFunc)
+	defEnvBuiltinFunc(ctx, "errfmt", env, builtinErrFmtFunc)
 	defEnvBuiltinFunc(ctx, "iserr", env, builtinIsErrFunc)
 
 	defEnvBuiltinFunc(ctx, "type", env, builtinTypeFunc)
