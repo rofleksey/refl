@@ -4,13 +4,13 @@ A simple scripting language interpreter written in Go.
 
 ## Overview
 
-Refl is an interpreted language where everything is an object (except `nil`). The language features:
+Refl is an interpreted language, featuring:
 
-- **Simple Types**: `nil`, `number`, `string`, `object`, `function`, `error`
-- **Objects everywhere**: All values are objects with key/value pairs
-- **No Booleans**: `0`, `nil` and `""` are "false", anything else is "true"
+- **Simple Types**: `number`, `string`, `object`, `function`, `error`, `nil`,
 - **Dynamic Typing**: No type declarations needed
 - **First-Class Functions**: Functions are values that support closures
+- **No arrays**: Objects keys can be of any value except `nil`
+- **No Booleans**: `0`, `nil` and `""` are "false", anything else is "true"
 
 ## Syntax Examples
 
@@ -48,3 +48,47 @@ for key, value in obj {
 
 "6" + 7 # "67"
 ```
+
+## Using from Go
+
+You can embed Refl in your Go application:
+
+```go
+package main 
+
+import (
+    "context"
+    "fmt"
+    "refl/parser"
+    "refl/runtime"
+    "refl/runtime/eval"
+)
+
+// Example usage
+func main() {
+	p := parser.New()
+	program, err := p.Parse(`var x = 10; x * 2`)
+	if err != nil {
+		panic(err)
+	}
+
+	env := runtime.NewEnvironment(nil)
+	
+    result, err := eval.Eval(context.Background(), program, env)()
+    if err != nil {
+        panic(err)
+    }
+		
+    fmt.Println(result.String()) // "20"
+}
+```
+
+## Standard Library
+
+Refl includes several built-in modules:
+
+* math - Mathematical functions (abs, floor, random, etc.)
+* strings - String manipulation (upper, split, contains, etc.)
+* io - Input/output functions (print, println, printf)
+* Global functions: type(), str(), len(), clone(), eval(), panic()
+* Error handling: newerr(), iserr(), errfmt()
