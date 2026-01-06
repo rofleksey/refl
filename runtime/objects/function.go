@@ -12,14 +12,14 @@ type Function struct {
 	Body       *ast.BlockStatement
 	Env        *runtime.Environment
 
-	evaluator func(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, *runtime.Error)
+	evaluator func(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic)
 }
 
 func NewFunction(
 	params []string,
 	body *ast.BlockStatement,
 	env *runtime.Environment,
-	evaluator func(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, *runtime.Error),
+	evaluator func(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic),
 ) *Function {
 	result := &Function{
 		Parameters: params,
@@ -42,7 +42,7 @@ func (f *Function) Equal(other runtime.Object) bool {
 }
 func (f *Function) Clone() runtime.Object { return f }
 
-func (f *Function) Call(args []runtime.Object) (runtime.Object, *runtime.Error) {
+func (f *Function) Call(args []runtime.Object) (runtime.Object, *runtime.Panic) {
 	funcEnv := runtime.NewEnvironment(f.Env)
 
 	for i, param := range f.Parameters {

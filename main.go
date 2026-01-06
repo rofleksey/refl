@@ -115,7 +115,7 @@ func createGlobalEnvironment() *runtime.Environment {
 	return runtime.NewEnvironment(nil)
 }
 
-func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -128,7 +128,7 @@ func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Obj
 	case *objects.ReturnSignal:
 		return result.(*objects.ReturnSignal).Value, nil
 	case *objects.BreakSignal, *objects.ContinueSignal:
-		return nil, runtime.NewError("break/continue outside loop", 0, 0)
+		return nil, runtime.NewPanic("break/continue outside loop", 0, 0)
 	}
 
 	return result, nil

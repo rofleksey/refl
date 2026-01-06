@@ -15,33 +15,34 @@ Refl is an interpreted language where everything is an object (except `nil`). Th
 ## Syntax Examples
 
 ```javascript
-// Variables
+# Variables
 var x = 1
-x = 2  // global assignment
+x = 2  # global assignment
 
-// Objects
+# No arrays, only objects
 var obj = {a: 1, "b": 2}
-var arr = {1, "two", 3}  // array syntax sugar
+var arr = {1, "two", 3}  # array syntax sugar
 
-// Functions
+# All functions are anonymous
 var add = fun(a, b) { return a + b }
 var result = add(1, 2)
 
-// Control flow
+# Control flow
 if x > 0 {
-    // do something
+    # do something
 } elif x == 0 {
-    // something else
+    # something else
 } else {
-    // default
+    # default
 }
 
-// Loops
+# Loops
 while condition {
-    // loop body
+    # loop body
 }
 
+# Iteration
 for key, value in obj {
-    // iterate over object or string
+    # iterate over object or string
 }
 ```

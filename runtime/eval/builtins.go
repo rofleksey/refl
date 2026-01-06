@@ -3,6 +3,7 @@ package eval
 import (
 	"context"
 	"iter"
+	"refl/parser"
 	"refl/runtime"
 	"refl/runtime/objects"
 )
@@ -10,7 +11,7 @@ import (
 type builtinFunction struct {
 	ctx  context.Context
 	name string
-	fn   func(context.Context, []runtime.Object) (runtime.Object, *runtime.Error)
+	fn   func(context.Context, []runtime.Object) (runtime.Object, *runtime.Panic)
 }
 
 func (f *builtinFunction) Type() runtime.ObjectType { return runtime.FunctionType }
@@ -21,7 +22,7 @@ func (f *builtinFunction) Equal(other runtime.Object) bool {
 }
 func (f *builtinFunction) Clone() runtime.Object { return f }
 
-func (f *builtinFunction) Call(args []runtime.Object) (runtime.Object, *runtime.Error) {
+func (f *builtinFunction) Call(args []runtime.Object) (runtime.Object, *runtime.Panic) {
 	return f.fn(f.ctx, args)
 }
 func (f *builtinFunction) Not() runtime.Object {
@@ -31,23 +32,23 @@ func (f *builtinFunction) HashKey() runtime.HashKey {
 	return runtime.HashKey("builtin_" + f.name)
 }
 
-func builtinTypeFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinTypeFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Panic) {
 	if len(args) != 1 {
-		return nil, runtime.NewError("type() expects exactly 1 argument", 0, 0)
+		return nil, runtime.NewPanic("type() expects exactly 1 argument", 0, 0)
 	}
 	return objects.NewString(string(args[0].Type())), nil
 }
 
-func builtinStrFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinStrFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Panic) {
 	if len(args) != 1 {
-		return nil, runtime.NewError("str() expects exactly 1 argument", 0, 0)
+		return nil, runtime.NewPanic("str() expects exactly 1 argument", 0, 0)
 	}
 	return objects.NewString(args[0].String()), nil
 }
 
-func builtinNumberFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinNumberFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Panic) {
 	if len(args) != 1 {
-		return nil, runtime.NewError("number() expects exactly 1 argument", 0, 0)
+		return nil, runtime.NewPanic("number() expects exactly 1 argument", 0, 0)
 	}
 
 	switch arg := args[0].(type) {
@@ -60,22 +61,22 @@ func builtinNumberFunc(_ context.Context, args []runtime.Object) (runtime.Object
 	}
 }
 
-func builtinLenFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinLenFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Panic) {
 	if len(args) != 1 {
-		return nil, runtime.NewError("len() expects exactly 1 argument", 0, 0)
+		return nil, runtime.NewPanic("len() expects exactly 1 argument", 0, 0)
 	}
 
 	indexable, ok := args[0].(runtime.Indexable)
 	if !ok {
-		return nil, runtime.NewError("len() can only be called on indexable objects", 0, 0)
+		return nil, runtime.NewPanic("len() can only be called on indexable objects", 0, 0)
 	}
 
 	return objects.NewNumber(float64(indexable.Length())), nil
 }
 
-func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Panic) {
 	if len(args) != 1 {
-		return nil, runtime.NewError("clone() expects exactly 1 argument", 0, 0)
+		return nil, runtime.NewPanic("clone() expects exactly 1 argument", 0, 0)
 	}
 
 	obj := args[0]
@@ -83,12 +84,34 @@ func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object,
 	return obj.Clone(), nil
 }
 
-func builtinExitFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Error) {
+func builtinReflFunc(ctx context.Context, args []runtime.Object) (runtime.Object, *runtime.Panic) {
+	if len(args) < 1 {
+		return nil, runtime.NewPanic("refl() expects at least 1 argument", 0, 0)
+	}
+
+	code := args[0].String()
+
+	p := parser.New()
+
+	program, err := p.Parse(code)
+	if err != nil {
+		return objects.NewError(err.Error()), nil
+	}
+
+	result, err := Eval(ctx, program, runtime.NewEnvironment(nil))
+	if err != nil {
+		return objects.NewError(err.Error()), nil
+	}
+
+	return result, nil
+}
+
+func builtinPanicFunc(_ context.Context, args []runtime.Object) (runtime.Object, *runtime.Panic) {
 	msg := "exit called"
 	if len(args) > 0 {
 		msg = args[0].String()
 	}
-	return nil, runtime.NewError(msg, 0, 0)
+	return nil, runtime.NewPanic(msg, 0, 0)
 }
 
 type globalRefObject struct {
@@ -103,7 +126,7 @@ func (g *globalRefObject) Equal(other runtime.Object) bool {
 }
 func (g *globalRefObject) Clone() runtime.Object { return g }
 
-func (g *globalRefObject) Get(key runtime.Object) (runtime.Object, *runtime.Error) {
+func (g *globalRefObject) Get(key runtime.Object) (runtime.Object, *runtime.Panic) {
 	keyStr := key.String()
 	if val, ok := g.env.Get(keyStr); ok {
 		return val, nil
@@ -111,8 +134,8 @@ func (g *globalRefObject) Get(key runtime.Object) (runtime.Object, *runtime.Erro
 	return objects.NilInstance, nil
 }
 
-func (g *globalRefObject) Set(key, value runtime.Object) *runtime.Error {
-	return runtime.NewError("cannot modify $ object directly", 0, 0)
+func (g *globalRefObject) Set(key, value runtime.Object) *runtime.Panic {
+	return runtime.NewPanic("cannot modify $ object directly", 0, 0)
 }
 
 func (g *globalRefObject) Length() int {

@@ -12,7 +12,7 @@ type Evaluator struct {
 	ctx context.Context
 }
 
-func (e *Evaluator) evalGeneric(node ast.Node, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalGeneric(node ast.Node, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	switch n := node.(type) {
 	case *ast.Program:
 		return e.evalProgram(n, env)
@@ -65,11 +65,11 @@ func (e *Evaluator) evalGeneric(node ast.Node, env *runtime.Environment) (runtim
 	case *ast.Assignment:
 		return e.evalAssignment(n, env)
 	default:
-		return nil, runtime.NewError(fmt.Sprintf("unknown node type: %T", node), 0, 0)
+		return nil, runtime.NewPanic(fmt.Sprintf("unknown node type: %T", node), 0, 0)
 	}
 }
 
-func (e *Evaluator) evalProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	var result runtime.Object = objects.NilInstance
 
 	for _, stmt := range program.Statements {
@@ -83,7 +83,7 @@ func (e *Evaluator) evalProgram(program *ast.Program, env *runtime.Environment) 
 	return result, nil
 }
 
-func (e *Evaluator) evalBlock(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalBlock(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	var result runtime.Object = objects.NilInstance
 	blockEnv := runtime.NewEnvironment(env)
 
@@ -115,7 +115,7 @@ func (e *Evaluator) evalBlock(block *ast.BlockStatement, env *runtime.Environmen
 	return result, nil
 }
 
-func (e *Evaluator) evalVarDeclaration(vd *ast.VarDeclaration, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalVarDeclaration(vd *ast.VarDeclaration, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	var value runtime.Object = objects.NilInstance
 
 	if vd.Value != nil {
@@ -130,11 +130,11 @@ func (e *Evaluator) evalVarDeclaration(vd *ast.VarDeclaration, env *runtime.Envi
 	return value, nil
 }
 
-func (e *Evaluator) evalExpressionStatement(es *ast.ExpressionStatement, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalExpressionStatement(es *ast.ExpressionStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	return e.evalGeneric(es.Expression, env)
 }
 
-func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	cond, err := e.evalGeneric(is.Condition, env)
 	if err != nil {
 		return nil, err
@@ -189,13 +189,13 @@ func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environmen
 	return objects.NilInstance, nil
 }
 
-func (e *Evaluator) evalWhileStatement(ws *ast.WhileStatement, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalWhileStatement(ws *ast.WhileStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	var result runtime.Object = objects.NilInstance
 
 	for {
 		select {
 		case <-e.ctx.Done():
-			return nil, runtime.NewError("context cancelled", 0, 0)
+			return nil, runtime.NewPanic("context cancelled", 0, 0)
 		default:
 		}
 
@@ -228,7 +228,7 @@ func (e *Evaluator) evalWhileStatement(ws *ast.WhileStatement, env *runtime.Envi
 	return result, nil
 }
 
-func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	obj, err := e.evalGeneric(fs.Object, env)
 	if err != nil {
 		return nil, err
@@ -236,7 +236,7 @@ func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environm
 
 	iterable, ok := obj.(runtime.Iterable)
 	if !ok {
-		return nil, runtime.NewError("cannot iterate over non-iterable object", fs.Pos.Line, fs.Pos.Column)
+		return nil, runtime.NewPanic("cannot iterate over non-iterable object", fs.Pos.Line, fs.Pos.Column)
 	}
 
 	var result runtime.Object = objects.NilInstance
@@ -269,7 +269,7 @@ func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environm
 	return result, nil
 }
 
-func (e *Evaluator) evalReturnStatement(rs *ast.ReturnStatement, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalReturnStatement(rs *ast.ReturnStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	var value runtime.Object = objects.NilInstance
 
 	if rs.Value != nil {
@@ -283,15 +283,15 @@ func (e *Evaluator) evalReturnStatement(rs *ast.ReturnStatement, env *runtime.En
 	return &objects.ReturnSignal{Value: value}, nil
 }
 
-func (e *Evaluator) evalBreakStatement() (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalBreakStatement() (runtime.Object, *runtime.Panic) {
 	return &objects.BreakSignal{}, nil
 }
 
-func (e *Evaluator) evalContinueStatement() (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalContinueStatement() (runtime.Object, *runtime.Panic) {
 	return &objects.ContinueSignal{}, nil
 }
 
-func (e *Evaluator) evalIdentifier(id *ast.Identifier, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalIdentifier(id *ast.Identifier, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	val, ok := env.Get(id.Name)
 	if !ok {
 		return objects.NilInstance, nil
@@ -299,23 +299,23 @@ func (e *Evaluator) evalIdentifier(id *ast.Identifier, env *runtime.Environment)
 	return val, nil
 }
 
-func (e *Evaluator) evalNumberLiteral(nl *ast.NumberLiteral) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalNumberLiteral(nl *ast.NumberLiteral) (runtime.Object, *runtime.Panic) {
 	return objects.NewNumber(nl.Value), nil
 }
 
-func (e *Evaluator) evalStringLiteral(sl *ast.StringLiteral) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalStringLiteral(sl *ast.StringLiteral) (runtime.Object, *runtime.Panic) {
 	return objects.NewString(sl.Value), nil
 }
 
-func (e *Evaluator) evalRawStringLiteral(rsl *ast.RawStringLiteral) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalRawStringLiteral(rsl *ast.RawStringLiteral) (runtime.Object, *runtime.Panic) {
 	return objects.NewString(rsl.Value), nil
 }
 
-func (e *Evaluator) evalNilLiteral() (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalNilLiteral() (runtime.Object, *runtime.Panic) {
 	return objects.NilInstance, nil
 }
 
-func (e *Evaluator) evalObjectLiteral(ol *ast.ObjectLiteral, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalObjectLiteral(ol *ast.ObjectLiteral, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	obj := objects.NewObject()
 
 	for key, expr := range ol.Properties {
@@ -330,7 +330,7 @@ func (e *Evaluator) evalObjectLiteral(ol *ast.ObjectLiteral, env *runtime.Enviro
 	return obj, nil
 }
 
-func (e *Evaluator) evalArrayLiteral(al *ast.ArrayLiteral, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalArrayLiteral(al *ast.ArrayLiteral, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	obj := objects.NewObject()
 
 	for i, expr := range al.Elements {
@@ -345,11 +345,11 @@ func (e *Evaluator) evalArrayLiteral(al *ast.ArrayLiteral, env *runtime.Environm
 	return obj, nil
 }
 
-func (e *Evaluator) evalFunctionLiteral(fl *ast.FunctionLiteral, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalFunctionLiteral(fl *ast.FunctionLiteral, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	return objects.NewFunction(fl.Parameters, fl.Body, runtime.NewEnvironment(env), e.evalBlock), nil
 }
 
-func (e *Evaluator) evalMemberDot(md *ast.MemberDot, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalMemberDot(md *ast.MemberDot, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	obj, err := e.evalGeneric(md.Object, env)
 	if err != nil {
 		return nil, err
@@ -357,14 +357,14 @@ func (e *Evaluator) evalMemberDot(md *ast.MemberDot, env *runtime.Environment) (
 
 	indexable, ok := obj.(runtime.Indexable)
 	if !ok {
-		return nil, runtime.NewError("cannot access member of non-indexable object", md.Pos.Line, md.Pos.Column)
+		return nil, runtime.NewPanic("cannot access member of non-indexable object", md.Pos.Line, md.Pos.Column)
 	}
 
 	key := objects.NewString(md.Member)
 	return indexable.Get(key)
 }
 
-func (e *Evaluator) evalMemberBracket(mb *ast.MemberBracket, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalMemberBracket(mb *ast.MemberBracket, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	obj, err := e.evalGeneric(mb.Object, env)
 	if err != nil {
 		return nil, err
@@ -377,13 +377,13 @@ func (e *Evaluator) evalMemberBracket(mb *ast.MemberBracket, env *runtime.Enviro
 
 	indexable, ok := obj.(runtime.Indexable)
 	if !ok {
-		return nil, runtime.NewError("cannot access member of non-indexable object", mb.Pos.Line, mb.Pos.Column)
+		return nil, runtime.NewPanic("cannot access member of non-indexable object", mb.Pos.Line, mb.Pos.Column)
 	}
 
 	return indexable.Get(key)
 }
 
-func (e *Evaluator) evalFunctionCall(fc *ast.FunctionCall, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalFunctionCall(fc *ast.FunctionCall, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	// Evaluate function expression
 	fnExpr, err := e.evalGeneric(fc.Function, env)
 	if err != nil {
@@ -393,7 +393,7 @@ func (e *Evaluator) evalFunctionCall(fc *ast.FunctionCall, env *runtime.Environm
 	// Check if it's callable
 	callable, ok := fnExpr.(runtime.Callable)
 	if !ok {
-		return nil, runtime.NewError("attempt to call non-function", fc.Pos.Line, fc.Pos.Column)
+		return nil, runtime.NewPanic("attempt to call non-function", fc.Pos.Line, fc.Pos.Column)
 	}
 
 	// Evaluate arguments
@@ -420,7 +420,7 @@ func (e *Evaluator) evalFunctionCall(fc *ast.FunctionCall, env *runtime.Environm
 	return result, nil
 }
 
-func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	// Evaluate object
 	obj, err := e.evalGeneric(mc.Object, env)
 	if err != nil {
@@ -430,7 +430,7 @@ func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment)
 	// Get method from object
 	indexable, ok := obj.(runtime.Indexable)
 	if !ok {
-		return nil, runtime.NewError("cannot access method of non-indexable object", mc.Pos.Line, mc.Pos.Column)
+		return nil, runtime.NewPanic("cannot access method of non-indexable object", mc.Pos.Line, mc.Pos.Column)
 	}
 
 	method, err := indexable.Get(objects.NewString(mc.Method))
@@ -441,7 +441,7 @@ func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment)
 	// Check if method is callable
 	callable, ok := method.(runtime.Callable)
 	if !ok {
-		return nil, runtime.NewError("attempt to call non-function method", mc.Pos.Line, mc.Pos.Column)
+		return nil, runtime.NewPanic("attempt to call non-function method", mc.Pos.Line, mc.Pos.Column)
 	}
 
 	// Evaluate arguments
@@ -469,7 +469,7 @@ func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment)
 	return result, nil
 }
 
-func (e *Evaluator) evalUnaryExpression(ue *ast.UnaryExpression, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalUnaryExpression(ue *ast.UnaryExpression, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	right, err := e.evalGeneric(ue.Right, env)
 	if err != nil {
 		return nil, err
@@ -483,13 +483,13 @@ func (e *Evaluator) evalUnaryExpression(ue *ast.UnaryExpression, env *runtime.En
 		if num, ok := right.(*objects.Number); ok {
 			return num.Negate()
 		}
-		return nil, runtime.NewError("cannot negate non-number", ue.Pos.Line, ue.Pos.Column)
+		return nil, runtime.NewPanic("cannot negate non-number", ue.Pos.Line, ue.Pos.Column)
 	default:
-		return nil, runtime.NewError(fmt.Sprintf("unknown operator: %s", ue.Operator), ue.Pos.Line, ue.Pos.Column)
+		return nil, runtime.NewPanic(fmt.Sprintf("unknown operator: %s", ue.Operator), ue.Pos.Line, ue.Pos.Column)
 	}
 }
 
-func (e *Evaluator) evalBinaryExpression(be *ast.BinaryExpression, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalBinaryExpression(be *ast.BinaryExpression, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	left, err := e.evalGeneric(be.Left, env)
 	if err != nil {
 		return nil, err
@@ -570,14 +570,14 @@ func (e *Evaluator) evalBinaryExpression(be *ast.BinaryExpression, env *runtime.
 		}
 		return right, nil
 	default:
-		return nil, runtime.NewError(fmt.Sprintf("unknown operator: %s", be.Operator), be.Pos.Line, be.Pos.Column)
+		return nil, runtime.NewPanic(fmt.Sprintf("unknown operator: %s", be.Operator), be.Pos.Line, be.Pos.Column)
 	}
 
-	return nil, runtime.NewError(fmt.Sprintf("cannot apply operator %s to types %s and %s",
+	return nil, runtime.NewPanic(fmt.Sprintf("cannot apply operator %s to types %s and %s",
 		be.Operator, left.Type(), right.Type()), be.Pos.Line, be.Pos.Column)
 }
 
-func (e *Evaluator) evalAssignment(a *ast.Assignment, env *runtime.Environment) (runtime.Object, *runtime.Error) {
+func (e *Evaluator) evalAssignment(a *ast.Assignment, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
 	right, err := e.evalGeneric(a.Right, env)
 	if err != nil {
 		return nil, err
@@ -595,7 +595,7 @@ func (e *Evaluator) evalAssignment(a *ast.Assignment, env *runtime.Environment) 
 
 		indexable, ok := obj.(runtime.Indexable)
 		if !ok {
-			return nil, runtime.NewError("cannot assign to member of non-indexable object", left.Pos.Line, left.Pos.Column)
+			return nil, runtime.NewPanic("cannot assign to member of non-indexable object", left.Pos.Line, left.Pos.Column)
 		}
 
 		key := objects.NewString(left.Member)
@@ -616,7 +616,7 @@ func (e *Evaluator) evalAssignment(a *ast.Assignment, env *runtime.Environment) 
 
 		indexable, ok := obj.(runtime.Indexable)
 		if !ok {
-			return nil, runtime.NewError("cannot assign to member of non-indexable object", left.Pos.Line, left.Pos.Column)
+			return nil, runtime.NewPanic("cannot assign to member of non-indexable object", left.Pos.Line, left.Pos.Column)
 		}
 
 		if err := indexable.Set(key, right); err != nil {
@@ -624,6 +624,6 @@ func (e *Evaluator) evalAssignment(a *ast.Assignment, env *runtime.Environment) 
 		}
 		return right, nil
 	default:
-		return nil, runtime.NewError("invalid assignment target", a.Pos.Line, a.Pos.Column)
+		return nil, runtime.NewPanic("invalid assignment target", a.Pos.Line, a.Pos.Column)
 	}
 }

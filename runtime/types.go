@@ -10,6 +10,7 @@ const (
 	StringType   ObjectType = "string"
 	ObjectType_  ObjectType = "object"
 	FunctionType ObjectType = "function"
+	ErrorType    ObjectType = "error"
 
 	BreakSignal    ObjectType = "break"
 	ContinueSignal ObjectType = "continue"
@@ -29,8 +30,8 @@ type Object interface {
 }
 
 type Indexable interface {
-	Get(key Object) (Object, *Error)
-	Set(key, value Object) *Error
+	Get(key Object) (Object, *Panic)
+	Set(key, value Object) *Panic
 	Length() int
 }
 
@@ -39,5 +40,5 @@ type Iterable interface {
 }
 
 type Callable interface {
-	Call(args []Object) (Object, *Error)
+	Call(args []Object) (Object, *Panic)
 }

@@ -52,51 +52,51 @@ func (o *ReflObject) Clone() runtime.Object {
 	return cloned
 }
 
-func (o *ReflObject) Add(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support addition", 0, 0)
+func (o *ReflObject) Add(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support addition", 0, 0)
 }
 
-func (o *ReflObject) Sub(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support subtraction", 0, 0)
+func (o *ReflObject) Sub(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support subtraction", 0, 0)
 }
 
-func (o *ReflObject) Mul(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support multiplication", 0, 0)
+func (o *ReflObject) Mul(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support multiplication", 0, 0)
 }
 
-func (o *ReflObject) Div(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support division", 0, 0)
+func (o *ReflObject) Div(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support division", 0, 0)
 }
 
-func (o *ReflObject) Mod(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support modulo", 0, 0)
+func (o *ReflObject) Mod(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support modulo", 0, 0)
 }
 
-func (o *ReflObject) Negate() (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support negation", 0, 0)
+func (o *ReflObject) Negate() (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support negation", 0, 0)
 }
 
-func (o *ReflObject) LessThan(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support comparison", 0, 0)
+func (o *ReflObject) LessThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support comparison", 0, 0)
 }
 
-func (o *ReflObject) GreaterThan(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support comparison", 0, 0)
+func (o *ReflObject) GreaterThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support comparison", 0, 0)
 }
 
-func (o *ReflObject) LessThanEqual(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support comparison", 0, 0)
+func (o *ReflObject) LessThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support comparison", 0, 0)
 }
 
-func (o *ReflObject) GreaterThanEqual(other runtime.Object) (runtime.Object, *runtime.Error) {
-	return nil, runtime.NewError("objects do not support comparison", 0, 0)
+func (o *ReflObject) GreaterThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+	return nil, runtime.NewPanic("objects do not support comparison", 0, 0)
 }
 
 func (o *ReflObject) Not() runtime.Object {
 	return NewBoolean(!o.Truthy())
 }
 
-func (o *ReflObject) Get(key runtime.Object) (runtime.Object, *runtime.Error) {
+func (o *ReflObject) Get(key runtime.Object) (runtime.Object, *runtime.Panic) {
 	if key.Type() == runtime.NumberType {
 		numKey, _ := key.(*Number)
 
@@ -116,7 +116,7 @@ func (o *ReflObject) Get(key runtime.Object) (runtime.Object, *runtime.Error) {
 	return carriage.Value, nil
 }
 
-func (o *ReflObject) Set(key, value runtime.Object) *runtime.Error {
+func (o *ReflObject) Set(key, value runtime.Object) *runtime.Panic {
 	if key.Type() == runtime.NumberType {
 		numKey, _ := key.(*Number)
 
