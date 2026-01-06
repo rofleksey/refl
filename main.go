@@ -54,7 +54,7 @@ func main() {
 	result, runtimeErr := executeProgram(program, env)
 
 	if runtimeErr != nil {
-		fmt.Fprintf(os.Stderr, "Runtime error: %v\n", runtimeErr)
+		fmt.Fprintf(os.Stderr, "%v\n", runtimeErr)
 		os.Exit(1)
 	}
 
@@ -115,7 +115,7 @@ func createGlobalEnvironment() *runtime.Environment {
 	return runtime.NewEnvironment(nil)
 }
 
-func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 

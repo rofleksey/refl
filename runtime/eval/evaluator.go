@@ -12,7 +12,7 @@ type Evaluator struct {
 	ctx context.Context
 }
 
-func (e *Evaluator) evalGeneric(node ast.Node, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalGeneric(node ast.Node, env *runtime.Environment) (runtime.Object, error) {
 	switch n := node.(type) {
 	case *ast.Program:
 		return e.evalProgram(n, env)
@@ -69,7 +69,7 @@ func (e *Evaluator) evalGeneric(node ast.Node, env *runtime.Environment) (runtim
 	}
 }
 
-func (e *Evaluator) evalProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
 	var result runtime.Object = objects.NilInstance
 
 	for _, stmt := range program.Statements {
@@ -83,7 +83,7 @@ func (e *Evaluator) evalProgram(program *ast.Program, env *runtime.Environment) 
 	return result, nil
 }
 
-func (e *Evaluator) evalBlock(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalBlock(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, error) {
 	var result runtime.Object = objects.NilInstance
 	blockEnv := runtime.NewEnvironment(env)
 
@@ -115,7 +115,7 @@ func (e *Evaluator) evalBlock(block *ast.BlockStatement, env *runtime.Environmen
 	return result, nil
 }
 
-func (e *Evaluator) evalVarDeclaration(vd *ast.VarDeclaration, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalVarDeclaration(vd *ast.VarDeclaration, env *runtime.Environment) (runtime.Object, error) {
 	var value runtime.Object = objects.NilInstance
 
 	if vd.Value != nil {
@@ -130,11 +130,11 @@ func (e *Evaluator) evalVarDeclaration(vd *ast.VarDeclaration, env *runtime.Envi
 	return value, nil
 }
 
-func (e *Evaluator) evalExpressionStatement(es *ast.ExpressionStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalExpressionStatement(es *ast.ExpressionStatement, env *runtime.Environment) (runtime.Object, error) {
 	return e.evalGeneric(es.Expression, env)
 }
 
-func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environment) (runtime.Object, error) {
 	cond, err := e.evalGeneric(is.Condition, env)
 	if err != nil {
 		return nil, err
@@ -189,7 +189,7 @@ func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environmen
 	return objects.NilInstance, nil
 }
 
-func (e *Evaluator) evalWhileStatement(ws *ast.WhileStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalWhileStatement(ws *ast.WhileStatement, env *runtime.Environment) (runtime.Object, error) {
 	var result runtime.Object = objects.NilInstance
 
 	for {
@@ -228,7 +228,7 @@ func (e *Evaluator) evalWhileStatement(ws *ast.WhileStatement, env *runtime.Envi
 	return result, nil
 }
 
-func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environment) (runtime.Object, error) {
 	obj, err := e.evalGeneric(fs.Object, env)
 	if err != nil {
 		return nil, err
@@ -269,7 +269,7 @@ func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environm
 	return result, nil
 }
 
-func (e *Evaluator) evalReturnStatement(rs *ast.ReturnStatement, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalReturnStatement(rs *ast.ReturnStatement, env *runtime.Environment) (runtime.Object, error) {
 	var value runtime.Object = objects.NilInstance
 
 	if rs.Value != nil {
@@ -283,15 +283,15 @@ func (e *Evaluator) evalReturnStatement(rs *ast.ReturnStatement, env *runtime.En
 	return &objects.ReturnSignal{Value: value}, nil
 }
 
-func (e *Evaluator) evalBreakStatement() (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalBreakStatement() (runtime.Object, error) {
 	return &objects.BreakSignal{}, nil
 }
 
-func (e *Evaluator) evalContinueStatement() (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalContinueStatement() (runtime.Object, error) {
 	return &objects.ContinueSignal{}, nil
 }
 
-func (e *Evaluator) evalIdentifier(id *ast.Identifier, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalIdentifier(id *ast.Identifier, env *runtime.Environment) (runtime.Object, error) {
 	val, ok := env.Get(id.Name)
 	if !ok {
 		return objects.NilInstance, nil
@@ -299,23 +299,23 @@ func (e *Evaluator) evalIdentifier(id *ast.Identifier, env *runtime.Environment)
 	return val, nil
 }
 
-func (e *Evaluator) evalNumberLiteral(nl *ast.NumberLiteral) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalNumberLiteral(nl *ast.NumberLiteral) (runtime.Object, error) {
 	return objects.NewNumber(nl.Value), nil
 }
 
-func (e *Evaluator) evalStringLiteral(sl *ast.StringLiteral) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalStringLiteral(sl *ast.StringLiteral) (runtime.Object, error) {
 	return objects.NewString(sl.Value), nil
 }
 
-func (e *Evaluator) evalRawStringLiteral(rsl *ast.RawStringLiteral) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalRawStringLiteral(rsl *ast.RawStringLiteral) (runtime.Object, error) {
 	return objects.NewString(rsl.Value), nil
 }
 
-func (e *Evaluator) evalNilLiteral() (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalNilLiteral() (runtime.Object, error) {
 	return objects.NilInstance, nil
 }
 
-func (e *Evaluator) evalObjectLiteral(ol *ast.ObjectLiteral, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalObjectLiteral(ol *ast.ObjectLiteral, env *runtime.Environment) (runtime.Object, error) {
 	obj := objects.NewObject()
 
 	for key, expr := range ol.Properties {
@@ -330,7 +330,7 @@ func (e *Evaluator) evalObjectLiteral(ol *ast.ObjectLiteral, env *runtime.Enviro
 	return obj, nil
 }
 
-func (e *Evaluator) evalArrayLiteral(al *ast.ArrayLiteral, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalArrayLiteral(al *ast.ArrayLiteral, env *runtime.Environment) (runtime.Object, error) {
 	obj := objects.NewObject()
 
 	for i, expr := range al.Elements {
@@ -345,11 +345,11 @@ func (e *Evaluator) evalArrayLiteral(al *ast.ArrayLiteral, env *runtime.Environm
 	return obj, nil
 }
 
-func (e *Evaluator) evalFunctionLiteral(fl *ast.FunctionLiteral, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalFunctionLiteral(fl *ast.FunctionLiteral, env *runtime.Environment) (runtime.Object, error) {
 	return objects.NewFunction(fl.Parameters, fl.Body, runtime.NewEnvironment(env), e.evalBlock), nil
 }
 
-func (e *Evaluator) evalMemberDot(md *ast.MemberDot, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalMemberDot(md *ast.MemberDot, env *runtime.Environment) (runtime.Object, error) {
 	obj, err := e.evalGeneric(md.Object, env)
 	if err != nil {
 		return nil, err
@@ -364,7 +364,7 @@ func (e *Evaluator) evalMemberDot(md *ast.MemberDot, env *runtime.Environment) (
 	return indexable.Get(key)
 }
 
-func (e *Evaluator) evalMemberBracket(mb *ast.MemberBracket, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalMemberBracket(mb *ast.MemberBracket, env *runtime.Environment) (runtime.Object, error) {
 	obj, err := e.evalGeneric(mb.Object, env)
 	if err != nil {
 		return nil, err
@@ -383,11 +383,15 @@ func (e *Evaluator) evalMemberBracket(mb *ast.MemberBracket, env *runtime.Enviro
 	return indexable.Get(key)
 }
 
-func (e *Evaluator) evalFunctionCall(fc *ast.FunctionCall, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalFunctionCall(fc *ast.FunctionCall, env *runtime.Environment) (runtime.Object, error) {
 	// Evaluate function expression
 	fnExpr, err := e.evalGeneric(fc.Function, env)
 	if err != nil {
 		return nil, err
+	}
+
+	if fnExpr == nil {
+		return nil, runtime.NewPanic("nil is not callable", fc.Pos.Line, fc.Pos.Column)
 	}
 
 	// Check if it's callable
@@ -420,7 +424,7 @@ func (e *Evaluator) evalFunctionCall(fc *ast.FunctionCall, env *runtime.Environm
 	return result, nil
 }
 
-func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment) (runtime.Object, error) {
 	// Evaluate object
 	obj, err := e.evalGeneric(mc.Object, env)
 	if err != nil {
@@ -436,6 +440,10 @@ func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment)
 	method, err := indexable.Get(objects.NewString(mc.Method))
 	if err != nil {
 		return nil, err
+	}
+
+	if method == nil {
+		return nil, runtime.NewPanic("method '"+mc.Method+"' not found", mc.Pos.Line, mc.Pos.Column)
 	}
 
 	// Check if method is callable
@@ -469,7 +477,7 @@ func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment)
 	return result, nil
 }
 
-func (e *Evaluator) evalUnaryExpression(ue *ast.UnaryExpression, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalUnaryExpression(ue *ast.UnaryExpression, env *runtime.Environment) (runtime.Object, error) {
 	right, err := e.evalGeneric(ue.Right, env)
 	if err != nil {
 		return nil, err
@@ -489,7 +497,7 @@ func (e *Evaluator) evalUnaryExpression(ue *ast.UnaryExpression, env *runtime.En
 	}
 }
 
-func (e *Evaluator) evalBinaryExpression(be *ast.BinaryExpression, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalBinaryExpression(be *ast.BinaryExpression, env *runtime.Environment) (runtime.Object, error) {
 	left, err := e.evalGeneric(be.Left, env)
 	if err != nil {
 		return nil, err
@@ -577,7 +585,7 @@ func (e *Evaluator) evalBinaryExpression(be *ast.BinaryExpression, env *runtime.
 		be.Operator, left.Type(), right.Type()), be.Pos.Line, be.Pos.Column)
 }
 
-func (e *Evaluator) evalAssignment(a *ast.Assignment, env *runtime.Environment) (runtime.Object, *runtime.Panic) {
+func (e *Evaluator) evalAssignment(a *ast.Assignment, env *runtime.Environment) (runtime.Object, error) {
 	right, err := e.evalGeneric(a.Right, env)
 	if err != nil {
 		return nil, err

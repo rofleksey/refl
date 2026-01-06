@@ -25,7 +25,7 @@ func (n *Number) Equal(other runtime.Object) bool {
 }
 func (n *Number) Clone() runtime.Object { return NewNumber(n.Value) }
 
-func (n *Number) Add(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) Add(other runtime.Object) (runtime.Object, error) {
 	switch o := other.(type) {
 	case *Number:
 		return NewNumber(n.Value + o.Value), nil
@@ -36,14 +36,14 @@ func (n *Number) Add(other runtime.Object) (runtime.Object, *runtime.Panic) {
 	}
 }
 
-func (n *Number) Sub(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) Sub(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.NumberType {
 		return nil, runtime.NewPanic("cannot subtract non-number from number", 0, 0)
 	}
 	return NewNumber(n.Value - other.(*Number).Value), nil
 }
 
-func (n *Number) Mul(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) Mul(other runtime.Object) (runtime.Object, error) {
 	switch o := other.(type) {
 	case *Number:
 		return NewNumber(n.Value * o.Value), nil
@@ -59,7 +59,7 @@ func (n *Number) Mul(other runtime.Object) (runtime.Object, *runtime.Panic) {
 	}
 }
 
-func (n *Number) Div(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) Div(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.NumberType {
 		return nil, runtime.NewPanic("cannot divide number by non-number", 0, 0)
 	}
@@ -70,7 +70,7 @@ func (n *Number) Div(other runtime.Object) (runtime.Object, *runtime.Panic) {
 	return NewNumber(n.Value / divisor), nil
 }
 
-func (n *Number) Mod(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) Mod(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.NumberType {
 		return nil, runtime.NewPanic("cannot modulo number by non-number", 0, 0)
 	}
@@ -81,32 +81,32 @@ func (n *Number) Mod(other runtime.Object) (runtime.Object, *runtime.Panic) {
 	return NewNumber(math.Mod(n.Value, mod)), nil
 }
 
-func (n *Number) Negate() (runtime.Object, *runtime.Panic) {
+func (n *Number) Negate() (runtime.Object, error) {
 	return NewNumber(-n.Value), nil
 }
 
-func (n *Number) LessThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) LessThan(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.NumberType {
 		return nil, runtime.NewPanic("cannot compare number with non-number", 0, 0)
 	}
 	return NewBoolean(n.Value < other.(*Number).Value), nil
 }
 
-func (n *Number) GreaterThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) GreaterThan(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.NumberType {
 		return nil, runtime.NewPanic("cannot compare number with non-number", 0, 0)
 	}
 	return NewBoolean(n.Value > other.(*Number).Value), nil
 }
 
-func (n *Number) LessThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) LessThanEqual(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.NumberType {
 		return nil, runtime.NewPanic("cannot compare number with non-number", 0, 0)
 	}
 	return NewBoolean(n.Value <= other.(*Number).Value), nil
 }
 
-func (n *Number) GreaterThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Number) GreaterThanEqual(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.NumberType {
 		return nil, runtime.NewPanic("cannot compare number with non-number", 0, 0)
 	}

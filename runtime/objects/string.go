@@ -25,15 +25,15 @@ func (s *String) Equal(other runtime.Object) bool {
 }
 func (s *String) Clone() runtime.Object { return NewString(s.Value) }
 
-func (s *String) Add(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) Add(other runtime.Object) (runtime.Object, error) {
 	return NewString(s.Value + other.String()), nil
 }
 
-func (s *String) Sub(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) Sub(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("strings do not support subtraction", 0, 0)
 }
 
-func (s *String) Mul(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) Mul(other runtime.Object) (runtime.Object, error) {
 	switch o := other.(type) {
 	case *Number:
 		result := ""
@@ -47,47 +47,47 @@ func (s *String) Mul(other runtime.Object) (runtime.Object, *runtime.Panic) {
 	}
 }
 
-func (s *String) Div(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) Div(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("strings do not support division", 0, 0)
 }
 
-func (s *String) Mod(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) Mod(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("strings do not support modulo", 0, 0)
 }
 
-func (s *String) Negate() (runtime.Object, *runtime.Panic) {
+func (s *String) Negate() (runtime.Object, error) {
 	return nil, runtime.NewPanic("strings do not support negation", 0, 0)
 }
 
-func (s *String) LessThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) LessThan(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.StringType {
 		return nil, runtime.NewPanic("cannot compare string with non-string", 0, 0)
 	}
 	return NewBoolean(s.Value < other.(*String).Value), nil
 }
 
-func (s *String) GreaterThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) GreaterThan(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.StringType {
 		return nil, runtime.NewPanic("cannot compare string with non-string", 0, 0)
 	}
 	return NewBoolean(s.Value > other.(*String).Value), nil
 }
 
-func (s *String) LessThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) LessThanEqual(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.StringType {
 		return nil, runtime.NewPanic("cannot compare string with non-string", 0, 0)
 	}
 	return NewBoolean(s.Value <= other.(*String).Value), nil
 }
 
-func (s *String) GreaterThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) GreaterThanEqual(other runtime.Object) (runtime.Object, error) {
 	if other.Type() != runtime.StringType {
 		return nil, runtime.NewPanic("cannot compare string with non-string", 0, 0)
 	}
 	return NewBoolean(s.Value >= other.(*String).Value), nil
 }
 
-func (s *String) Get(key runtime.Object) (runtime.Object, *runtime.Panic) {
+func (s *String) Get(key runtime.Object) (runtime.Object, error) {
 	if key.Type() != runtime.NumberType {
 		return nil, runtime.NewPanic("string index must be a number", 0, 0)
 	}
@@ -100,7 +100,7 @@ func (s *String) Get(key runtime.Object) (runtime.Object, *runtime.Panic) {
 	return NewString(string(s.Value[idx])), nil
 }
 
-func (s *String) Set(key, value runtime.Object) *runtime.Panic {
+func (s *String) Set(key, value runtime.Object) error {
 	return runtime.NewPanic("strings are immutable", 0, 0)
 }
 
@@ -108,7 +108,7 @@ func (s *String) Length() int {
 	return len(s.Value)
 }
 
-func (s *String) ToNumber() (runtime.Object, *runtime.Panic) {
+func (s *String) ToNumber() (runtime.Object, error) {
 	val, err := strconv.ParseFloat(s.Value, 64)
 	if err != nil {
 		return NilInstance, nil

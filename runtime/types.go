@@ -30,8 +30,8 @@ type Object interface {
 }
 
 type Indexable interface {
-	Get(key Object) (Object, *Panic)
-	Set(key, value Object) *Panic
+	Get(key Object) (Object, error)
+	Set(key, value Object) error
 	Length() int
 }
 
@@ -40,5 +40,5 @@ type Iterable interface {
 }
 
 type Callable interface {
-	Call(args []Object) (Object, *Panic)
+	Call(args []Object) (Object, error)
 }

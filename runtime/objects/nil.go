@@ -17,43 +17,43 @@ func (n *Nil) Equal(other runtime.Object) bool {
 }
 func (n *Nil) Clone() runtime.Object { return n }
 
-func (n *Nil) Add(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) Add(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support addition", 0, 0)
 }
 
-func (n *Nil) Sub(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) Sub(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support subtraction", 0, 0)
 }
 
-func (n *Nil) Mul(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) Mul(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support multiplication", 0, 0)
 }
 
-func (n *Nil) Div(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) Div(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support division", 0, 0)
 }
 
-func (n *Nil) Mod(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) Mod(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support modulo", 0, 0)
 }
 
-func (n *Nil) Negate() (runtime.Object, *runtime.Panic) {
+func (n *Nil) Negate() (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support negation", 0, 0)
 }
 
-func (n *Nil) LessThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) LessThan(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support comparison", 0, 0)
 }
 
-func (n *Nil) GreaterThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) GreaterThan(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support comparison", 0, 0)
 }
 
-func (n *Nil) LessThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) LessThanEqual(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support comparison", 0, 0)
 }
 
-func (n *Nil) GreaterThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (n *Nil) GreaterThanEqual(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("nil does not support comparison", 0, 0)
 }
 

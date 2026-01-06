@@ -25,43 +25,43 @@ func (e *UserError) Equal(other runtime.Object) bool {
 }
 func (e *UserError) Clone() runtime.Object { return NewError(e.text) }
 
-func (e *UserError) Add(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) Add(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support addition", 0, 0)
 }
 
-func (e *UserError) Sub(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) Sub(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support subtraction", 0, 0)
 }
 
-func (e *UserError) Mul(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) Mul(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support multiplication", 0, 0)
 }
 
-func (e *UserError) Div(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) Div(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support division", 0, 0)
 }
 
-func (e *UserError) Mod(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) Mod(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support modulo", 0, 0)
 }
 
-func (e *UserError) Negate() (runtime.Object, *runtime.Panic) {
+func (e *UserError) Negate() (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support negation", 0, 0)
 }
 
-func (e *UserError) LessThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) LessThan(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support comparison", 0, 0)
 }
 
-func (e *UserError) GreaterThan(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) GreaterThan(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support comparison", 0, 0)
 }
 
-func (e *UserError) LessThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) LessThanEqual(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support comparison", 0, 0)
 }
 
-func (e *UserError) GreaterThanEqual(other runtime.Object) (runtime.Object, *runtime.Panic) {
+func (e *UserError) GreaterThanEqual(other runtime.Object) (runtime.Object, error) {
 	return nil, runtime.NewPanic("errors do not support comparison", 0, 0)
 }
 
