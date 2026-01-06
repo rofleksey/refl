@@ -10,15 +10,14 @@ import (
 func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
 	runtimeObj := objects.NewObject()
 	env.Define("runtime", runtimeObj)
-	defLiteralBuiltinFunc(ctx, "panic", runtimeObj, builtinPanicFunc)
 
+	defEnvBuiltinFunc(ctx, "panic", env, builtinPanicFunc)
 	defEnvBuiltinFunc(ctx, "type", env, builtinTypeFunc)
-	defEnvBuiltinFunc(ctx, "str", env, builtinStrFunc)
 	defEnvBuiltinFunc(ctx, "str", env, builtinStrFunc)
 	defEnvBuiltinFunc(ctx, "number", env, builtinNumberFunc)
 	defEnvBuiltinFunc(ctx, "len", env, builtinLenFunc)
 	defEnvBuiltinFunc(ctx, "clone", env, builtinCloneFunc)
-	defEnvBuiltinFunc(ctx, "refl", env, builtinReflFunc)
+	defEnvBuiltinFunc(ctx, "eval", env, builtinEvalFunc)
 
 	env.Define("$", &globalRefObject{env: env})
 

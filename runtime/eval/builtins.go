@@ -84,7 +84,7 @@ func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object,
 	return obj.Clone(), nil
 }
 
-func builtinReflFunc(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
+func builtinEvalFunc(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) < 1 {
 		return nil, runtime.NewPanic("refl() expects at least 1 argument", 0, 0)
 	}
