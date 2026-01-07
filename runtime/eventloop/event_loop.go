@@ -3,6 +3,7 @@ package eventloop
 import (
 	"container/heap"
 	"context"
+	"refl/runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -12,7 +13,7 @@ import (
 
 type Task func()
 
-type EventCallback func(ctx context.Context, event string, data any)
+type EventCallback func(ctx context.Context, event string, args []runtime.Object)
 
 type EventHandler struct {
 	ID       uuid.UUID
@@ -127,19 +128,19 @@ func (e *EventLoop) RegisterCallback(event string, callback EventCallback) func(
 	}
 }
 
-func (e *EventLoop) Fire(event string, data any) {
+func (e *EventLoop) Fire(event string, args []runtime.Object) {
 	e.Enqueue(func() {
-		e.fireEvent(event, data)
+		e.fireEvent(event, args)
 	})
 }
 
-func (e *EventLoop) fireEvent(event string, data any) {
+func (e *EventLoop) fireEvent(event string, args []runtime.Object) {
 	e.handlersMu.Lock()
 	defer e.handlersMu.Unlock()
 
 	handlers := e.handlers[event]
 	for _, h := range handlers {
-		h.Callback(e.ctx, event, data)
+		h.Callback(e.ctx, event, args)
 	}
 }
 

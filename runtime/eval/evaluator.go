@@ -20,9 +20,9 @@ func (e *Evaluator) Context() context.Context {
 	return e.ctx
 }
 
-func (e *Evaluator) FireEvent(event string, data any) {
+func (e *Evaluator) FireEvent(event string, args []runtime.Object) {
 	if e.eventLoop != nil {
-		e.eventLoop.Fire(event, data)
+		e.eventLoop.Fire(event, args)
 	}
 }
 
