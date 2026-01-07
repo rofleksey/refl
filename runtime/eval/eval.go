@@ -39,11 +39,12 @@ func New(ctx context.Context, program *ast.Program, env *runtime.Environment, op
 	defEnvBuiltinFunc("len", env, builtinLenFunc)
 	defEnvBuiltinFunc("range", env, builtinRangeFunc)
 	defEnvBuiltinFunc("clone", env, builtinCloneFunc)
-
-	var eventLoop *eventloop.EventLoop
+	if !options.disableRefl {
+		defEnvBuiltinFunc("refl", env, builtinReflFunc)
+	}
 
 	if !options.disableEvents {
-		eventLoop = eventloop.New(ctx)
+		eventLoop := eventloop.New(ctx)
 		evaluator.eventLoop = eventLoop
 		ctx = context.WithValue(ctx, "event_loop", eventLoop)
 		defEnvBuiltinFunc("eval", env, builtinEvalFunc)

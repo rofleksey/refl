@@ -67,17 +67,18 @@ import (
 // Example usage
 func main() {
 	p := parser.New()
-	program, err := p.Parse(`var x = 10; x * 2`)
+	program, err := p.Parse(`io.println("Hello world!")`)
 	if err != nil {
 		panic(err)
 	}
 
 	env := runtime.NewEnvironment(nil)
-	
-    result, err := eval.Eval(context.Background(), program, env)()
-    if err != nil {
-        panic(err)
-    }
+
+	evaluator := eval.New(context.Background(), program, env)
+	result, err := evaluator.Run()
+	if err != nil {
+		panic(err)
+	}
 		
     fmt.Println(result.String()) // "20"
 }
@@ -87,8 +88,17 @@ func main() {
 
 Refl includes several built-in modules:
 
-* math - Mathematical functions (abs, floor, random, etc.)
-* strings - String manipulation (upper, split, contains, etc.)
-* io - Input/output functions (print, println, printf)
-* Global functions: range(), type(), str(), len(), clone(), eval(), panic()
-* Error handling: newerr(), iserr(), errfmt()
+* `math` - Mathematical functions (`abs`, `floor`, `random`, etc.)
+* `strings` - String manipulation (`upper`, `split`, `contains`, etc.)
+* `time` - Time functions (`now`, `parse`, `format`, `sleep`, etc.)
+* `io` - Input/output functions (`print`, `println`, `printf`, e.t.c.)
+* `events` - Event loop functions (`schedule`, `register`, e.t.c.)
+* `errors` - Creating errors: (`new`, `is`, `fmt`, e.t.c.)
+
+Global functions:
+* `range` - creates iterators over integers, same as in python
+* `type` - outputs type of the argument
+* `str` - converts the argument to string
+* `len` - outputs the length of an indexable argument
+* `clone` - creates a deep copy of the argument, functions are copied by reference
+* `eval` - evaluates a refl code

@@ -5,6 +5,7 @@ import (
 	"iter"
 	"refl/parser"
 	"refl/runtime"
+	"refl/runtime/eventloop"
 	"refl/runtime/objects"
 )
 
@@ -84,6 +85,44 @@ func builtinEvalFunc(ctx context.Context, args []runtime.Object) (runtime.Object
 	}
 
 	return result, nil
+}
+
+func builtinReflFunc(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
+	originalEvaluator := ctx.Value("evaluator").(*Evaluator)
+	originalEventLoop := ctx.Value("event_loop").(*eventloop.EventLoop)
+
+	if len(args) < 1 {
+		return nil, runtime.NewPanic("refl() expects at least 1 argument", 0, 0)
+	}
+
+	fn, ok := args[0].(*objects.Function)
+	if !ok {
+		return nil, runtime.NewPanic("refl() first argument must be a function", 0, 0)
+	}
+
+	reflArgs := make([]runtime.Object, 0, len(args)-1)
+	for _, arg := range args[1:] {
+		reflArgs = append(reflArgs, arg.Clone())
+	}
+
+	options := ctx.Value("options").(Options)
+	evaluator := New(ctx, nil, runtime.NewEnvironment(nil), OptionSetOptions{options})
+
+	promise := objects.NewPromise()
+	unlock := originalEventLoop.RegisterLock()
+
+	go func() {
+		defer unlock()
+
+		result, err := evaluator.runCoroutine(fn, reflArgs)
+		if err != nil {
+			promise.Reject(err, originalEvaluator)
+		} else {
+			promise.Resolve(result, originalEvaluator)
+		}
+	}()
+
+	return promise, nil
 }
 
 func builtinRangeFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {

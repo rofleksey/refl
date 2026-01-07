@@ -26,10 +26,35 @@ func (e *Evaluator) FireEvent(event string, args []runtime.Object) {
 	}
 }
 
+func (e *Evaluator) EnqueueTask(task eventloop.Task) {
+	if e.eventLoop != nil {
+		e.eventLoop.Enqueue(task)
+	}
+}
+
 func (e *Evaluator) Run() (runtime.Object, error) {
 	result, err := e.evalProgram(e.program, e.env)
 	if err != nil {
 		return result, err
+	}
+
+	if e.eventLoop != nil {
+		e.eventLoop.Start()
+		e.eventLoop.Wait()
+
+		r := e.eventLoop.LastPanic()
+		if r != nil {
+			return nil, runtime.NewPanic(fmt.Sprintf("Event loop panic: %v", r), 0, 0)
+		}
+	}
+
+	return result, nil
+}
+
+func (e *Evaluator) runCoroutine(fn *objects.Function, args []runtime.Object) (runtime.Object, error) {
+	result, err := fn.Call(e.ctx, args)
+	if err != nil {
+		return nil, err
 	}
 
 	if e.eventLoop != nil {

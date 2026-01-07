@@ -128,6 +128,28 @@ func (e *EventLoop) RegisterCallback(event string, callback EventCallback) func(
 	}
 }
 
+func (e *EventLoop) RegisterLock() func() {
+	e.handlersMu.Lock()
+	defer e.handlersMu.Unlock()
+
+	handlerID := uuid.New()
+	event := "__lock__" + handlerID.String()
+
+	e.handlers[event] = append(e.handlers[event], EventHandler{
+		ID:       handlerID,
+		Callback: func(ctx context.Context, event string, args []runtime.Object) {},
+	})
+
+	select {
+	case e.triggerChan <- struct{}{}:
+	default:
+	}
+
+	return func() {
+		e.unregisterHandler(event, handlerID)
+	}
+}
+
 func (e *EventLoop) Fire(event string, args []runtime.Object) {
 	e.Enqueue(func() {
 		e.fireEvent(event, args)
@@ -283,7 +305,29 @@ func (e *EventLoop) runLoop() {
 		}
 	}()
 
+outer:
 	for {
+		select {
+		// try immediate tasks first
+		case <-e.ctx.Done():
+			e.drainTasks()
+			return
+
+		case imTask := <-e.immediateTaskChan:
+			if imTask.cancelled.Load() {
+				continue outer
+			}
+
+			if !e.executeTask(imTask.task) {
+				return
+			}
+
+			continue outer
+
+		default:
+		}
+
+		// try scheduled tasks if no immediate tasks found
 		nextDelay := e.getNextDelay()
 
 		if timer != nil {
@@ -293,17 +337,20 @@ func (e *EventLoop) runLoop() {
 		}
 
 		if nextDelay < 0 {
+			// no delayed tasks either - check if event handlers exist
 			e.handlersMu.Lock()
 			handleCount := len(e.handlers)
 			e.handlersMu.Unlock()
 
+			// no scheduled or delayed tasks, no event handlers - nothing will ever happen again
 			if handleCount == 0 {
 				return
 			}
+		} else {
+			// at least 1 delayed task is pending
+			timer = time.NewTimer(nextDelay)
+			timerC = timer.C
 		}
-
-		timer = time.NewTimer(nextDelay)
-		timerC = timer.C
 
 		select {
 		case <-e.ctx.Done():
