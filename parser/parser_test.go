@@ -750,6 +750,8 @@ func TestParseStringLiterals(t *testing.T) {
 		{`"he said \"hello\""`, "he said \"hello\"", false},
 		{"`hello`", "hello", true},
 		{"`hello\nworld`", "hello\nworld", true},
+		{`"café"`, "café", false},
+		{`"👍👎"`, "👍👎", false},
 	}
 
 	for _, tt := range tests {

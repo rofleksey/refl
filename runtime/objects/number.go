@@ -44,19 +44,13 @@ func (n *Number) Sub(other runtime.Object) (runtime.Object, error) {
 }
 
 func (n *Number) Mul(other runtime.Object) (runtime.Object, error) {
-	switch o := other.(type) {
-	case *Number:
-		return NewNumber(n.Value * o.Value), nil
-	case *String:
-		result := ""
-		count := int(n.Value)
-		for i := 0; i < count; i++ {
-			result += o.Value
-		}
-		return NewString(result), nil
-	default:
-		return nil, runtime.NewPanic("cannot multiply number by "+string(other.Type()), 0, 0)
+	if other.Type() != runtime.NumberType {
+		return nil, runtime.NewPanic("cannot multiply number by non-number", 0, 0)
 	}
+
+	factor := other.(*Number).Value
+
+	return NewNumber(n.Value * factor), nil
 }
 
 func (n *Number) Div(other runtime.Object) (runtime.Object, error) {

@@ -34,17 +34,7 @@ func (s *String) Sub(other runtime.Object) (runtime.Object, error) {
 }
 
 func (s *String) Mul(other runtime.Object) (runtime.Object, error) {
-	switch o := other.(type) {
-	case *Number:
-		result := ""
-		count := int(o.Value)
-		for i := 0; i < count; i++ {
-			result += s.Value
-		}
-		return NewString(result), nil
-	default:
-		return nil, runtime.NewPanic("cannot multiply string by non-number", 0, 0)
-	}
+	return nil, runtime.NewPanic("strings do not support multiplication", 0, 0)
 }
 
 func (s *String) Div(other runtime.Object) (runtime.Object, error) {
