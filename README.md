@@ -86,7 +86,7 @@ events.schedule(fun() {
 errors.panic("Fatal error")
 
 # Eval code
-eval("6"+7) # "67"
+eval(`"6"+7`) # "67"
 ```
 
 ## Using from Go
