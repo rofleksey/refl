@@ -64,7 +64,9 @@ func TestEvalWhileStatements(t *testing.T) {
 
 			program := parseProgram(t, tt.input)
 			env := runtime.NewEnvironment(nil)
-			result, err := Eval(ctx, program, env)
+
+			evaluator := New(ctx, program, env)
+			result, err := evaluator.Run()
 			require.NoError(t, err)
 
 			assert.IsType(t, &objects.Number{}, result)

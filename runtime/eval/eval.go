@@ -2,14 +2,13 @@ package eval
 
 import (
 	"context"
-	"fmt"
 	"refl/ast"
 	"refl/runtime"
 	"refl/runtime/eventloop"
 	"refl/runtime/objects"
 )
 
-func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment, opts ...Option) (runtime.Object, error) {
+func New(ctx context.Context, program *ast.Program, env *runtime.Environment, opts ...Option) *Evaluator {
 	var options Options
 
 	for _, opt := range opts {
@@ -18,12 +17,18 @@ func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment, o
 
 	ctx = context.WithValue(ctx, "options", options)
 
+	evaluator := &Evaluator{
+		program: program,
+		env:     env,
+	}
+
+	ctx = context.WithValue(ctx, "evaluator", evaluator)
+
 	env.Define("math", createMathObject())
 	env.Define("strings", createStringObject())
 	env.Define("errors", createErrorsObject())
 	env.Define("io", createIoObject())
 	env.Define("time", createTimeObject())
-
 	if !options.disableEvents {
 		env.Define("events", createEventsObject())
 	}
@@ -31,44 +36,24 @@ func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment, o
 	defEnvBuiltinFunc("type", env, builtinTypeFunc)
 	defEnvBuiltinFunc("str", env, builtinStrFunc)
 	defEnvBuiltinFunc("number", env, builtinNumberFunc)
-
 	defEnvBuiltinFunc("len", env, builtinLenFunc)
-
 	defEnvBuiltinFunc("range", env, builtinRangeFunc)
-
 	defEnvBuiltinFunc("clone", env, builtinCloneFunc)
 
 	var eventLoop *eventloop.EventLoop
 
 	if !options.disableEvents {
 		eventLoop = eventloop.New(ctx)
+		evaluator.eventLoop = eventLoop
 		ctx = context.WithValue(ctx, "event_loop", eventLoop)
 		defEnvBuiltinFunc("eval", env, builtinEvalFunc)
 	}
 
 	env.Define("$", &globalRefObject{env: env})
 
-	evaluator := &Evaluator{}
-
-	ctx = context.WithValue(ctx, "evaluator", evaluator)
 	evaluator.ctx = ctx
 
-	result, err := evaluator.evalProgram(program, env)
-	if err != nil {
-		return result, err
-	}
-
-	if eventLoop != nil {
-		eventLoop.Start()
-		eventLoop.Wait()
-
-		r := eventLoop.LastPanic()
-		if r != nil {
-			return nil, runtime.NewPanic(fmt.Sprintf("Event loop panic: %v", r), 0, 0)
-		}
-	}
-
-	return result, nil
+	return evaluator
 }
 
 func defLiteralBuiltinFunc(

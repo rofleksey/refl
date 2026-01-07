@@ -121,7 +121,8 @@ func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Obj
 
 	ctx := context.Background()
 
-	result, err := eval.Eval(ctx, program, env)
+	evaluator := eval.New(ctx, program, env)
+	result, err := evaluator.Run()
 	if err != nil {
 		return nil, err
 	}

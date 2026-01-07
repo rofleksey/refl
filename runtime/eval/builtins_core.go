@@ -76,7 +76,9 @@ func builtinEvalFunc(ctx context.Context, args []runtime.Object) (runtime.Object
 
 	options := ctx.Value("options").(Options)
 
-	result, err := Eval(ctx, program, runtime.NewEnvironment(nil), OptionSetOptions{options})
+	evaluator := New(ctx, program, runtime.NewEnvironment(nil), OptionSetOptions{options})
+
+	result, err := evaluator.Run()
 	if err != nil {
 		return objects.NewError(err.Error()), nil
 	}

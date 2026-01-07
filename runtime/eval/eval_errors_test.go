@@ -79,7 +79,8 @@ func TestEvalErrors(t *testing.T) {
 			program := parseProgram(t, tt.input)
 			env := runtime.NewEnvironment(nil)
 
-			_, err := Eval(ctx, program, env)
+			evaluator := New(ctx, program, env)
+			_, err := evaluator.Run()
 			require.Error(t, err)
 
 			if tt.errorSubstr != "" {

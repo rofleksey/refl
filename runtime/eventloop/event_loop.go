@@ -127,6 +127,22 @@ func (e *EventLoop) RegisterCallback(event string, callback EventCallback) func(
 	}
 }
 
+func (e *EventLoop) Fire(event string, data any) {
+	e.Enqueue(func() {
+		e.fireEvent(event, data)
+	})
+}
+
+func (e *EventLoop) fireEvent(event string, data any) {
+	e.handlersMu.Lock()
+	defer e.handlersMu.Unlock()
+
+	handlers := e.handlers[event]
+	for _, h := range handlers {
+		h.Callback(e.ctx, event, data)
+	}
+}
+
 func (e *EventLoop) unregisterHandler(event string, handlerID uuid.UUID) {
 	e.handlersMu.Lock()
 	defer e.handlersMu.Unlock()

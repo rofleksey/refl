@@ -5,15 +5,44 @@ import (
 	"fmt"
 	"refl/ast"
 	"refl/runtime"
+	"refl/runtime/eventloop"
 	"refl/runtime/objects"
 )
 
 type Evaluator struct {
-	ctx context.Context
+	ctx       context.Context
+	program   *ast.Program
+	env       *runtime.Environment
+	eventLoop *eventloop.EventLoop
 }
 
 func (e *Evaluator) Context() context.Context {
 	return e.ctx
+}
+
+func (e *Evaluator) FireEvent(event string, data any) {
+	if e.eventLoop != nil {
+		e.eventLoop.Fire(event, data)
+	}
+}
+
+func (e *Evaluator) Run() (runtime.Object, error) {
+	result, err := e.evalProgram(e.program, e.env)
+	if err != nil {
+		return result, err
+	}
+
+	if e.eventLoop != nil {
+		e.eventLoop.Start()
+		e.eventLoop.Wait()
+
+		r := e.eventLoop.LastPanic()
+		if r != nil {
+			return nil, runtime.NewPanic(fmt.Sprintf("Event loop panic: %v", r), 0, 0)
+		}
+	}
+
+	return result, nil
 }
 
 func (e *Evaluator) evalGeneric(node ast.Node, env *runtime.Environment) (runtime.Object, error) {
