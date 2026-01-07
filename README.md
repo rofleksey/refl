@@ -11,6 +11,8 @@ Refl is an interpreted language, featuring:
 - **First-Class Functions**: Functions are values that support closures
 - **No arrays**: Objects keys can be of any value except `nil`
 - **No Booleans**: `0`, `nil` and `""` are "false", anything else is "true"
+- **Event Loop**: Built-in asynchronous programming with promises and events
+- **Coroutines**: Lightweight concurrency with the refl() function
 
 ## Syntax Examples
 
@@ -42,11 +44,49 @@ while condition {
 }
 
 # Iteration
-for key, value in obj {
-    # iterate over iterator, object or string
+for i, val in range(0, 10) {
+    io.println(i, val)
 }
 
-"6" + 7 # "67"
+# Create and format errors
+var err = errors.new("Something went wrong")
+var formatted = errors.fmt("Error: $ at $", "failure", time:now())
+
+# Check errors
+if errors.is(result) {
+    io.println("Got an error: " + result)
+}
+
+# Create coroutines with refl(), returns a promise
+var p = refl(fun() {
+    time.sleep(1000)
+    return "done"
+}).then(fun(res) {
+    io.println("Success:", res)
+}).catch(fun(e) {
+    io.println("Failure:", e)
+}).finally(fun() {
+    io.println("Coroutine completed")
+})
+
+# Promises are cancellable
+p.cancel() 
+
+# Register event handlers, they can be triggered from go
+events.register("click", fun(evt, x, y) {
+    io.println("Clicked at", x, y)
+})
+
+# Schedule tasks
+events.schedule(fun() {
+    io.println("Scheduled task")
+}, time:now() + 5000)
+
+# Panic (unrecoverable error)
+errors.panic("Fatal error")
+
+# Eval code
+eval("6"+7) # "67"
 ```
 
 ## Using from Go
@@ -62,6 +102,7 @@ import (
     "refl/parser"
     "refl/runtime"
     "refl/runtime/eval"
+    "refl/runtime/objects"
 )
 
 // Example usage
@@ -73,8 +114,13 @@ func main() {
 	}
 
 	env := runtime.NewEnvironment(nil)
+	env.Define("my_func", objects.NewWrapperFunction(func(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
+      return objects.NewString("Hello world!"), nil
+	})) // can define custom global variables
 
 	evaluator := eval.New(context.Background(), program, env)
+	evaluator.FireEvent("my_event", []runtime.Object{objects.NewString("my_data")}) // can fire events from go
+	
 	result, err := evaluator.Run()
 	if err != nil {
 		panic(err)
@@ -101,4 +147,5 @@ Global functions:
 * `str` - converts the argument to string
 * `len` - outputs the length of an indexable argument
 * `clone` - creates a deep copy of the argument, functions are copied by reference
+* `refl` - spawns a coroutine
 * `eval` - evaluates a refl code
