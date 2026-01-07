@@ -222,19 +222,19 @@ func builtinStringLastIndexFunc(_ context.Context, args []runtime.Object) (runti
 }
 
 func createStringObject() runtime.Object {
-	stringObj := objects.NewObject()
+	obj := objects.NewObject()
 
-	defLiteralBuiltinFunc("upper", stringObj, builtinStringUpperFunc)
-	defLiteralBuiltinFunc("lower", stringObj, builtinStringLowerFunc)
-	defLiteralBuiltinFunc("trim", stringObj, builtinStringTrimSpaceFunc)
-	defLiteralBuiltinFunc("split", stringObj, builtinStringSplitFunc)
-	defLiteralBuiltinFunc("join", stringObj, builtinStringJoinFunc)
-	defLiteralBuiltinFunc("contains", stringObj, builtinStringContainsFunc)
-	defLiteralBuiltinFunc("has_prefix", stringObj, builtinStringHasPrefixFunc)
-	defLiteralBuiltinFunc("has_suffix", stringObj, builtinStringHasSuffixFunc)
-	defLiteralBuiltinFunc("replace", stringObj, builtinStringReplaceFunc)
-	defLiteralBuiltinFunc("index", stringObj, builtinStringIndexFunc)
-	defLiteralBuiltinFunc("last_index", stringObj, builtinStringLastIndexFunc)
+	defLiteralBuiltinFunc("upper", obj, builtinStringUpperFunc)
+	defLiteralBuiltinFunc("lower", obj, builtinStringLowerFunc)
+	defLiteralBuiltinFunc("trim", obj, builtinStringTrimSpaceFunc)
+	defLiteralBuiltinFunc("split", obj, builtinStringSplitFunc)
+	defLiteralBuiltinFunc("join", obj, builtinStringJoinFunc)
+	defLiteralBuiltinFunc("contains", obj, builtinStringContainsFunc)
+	defLiteralBuiltinFunc("has_prefix", obj, builtinStringHasPrefixFunc)
+	defLiteralBuiltinFunc("has_suffix", obj, builtinStringHasSuffixFunc)
+	defLiteralBuiltinFunc("replace", obj, builtinStringReplaceFunc)
+	defLiteralBuiltinFunc("index", obj, builtinStringIndexFunc)
+	defLiteralBuiltinFunc("last_index", obj, builtinStringLastIndexFunc)
 
-	return stringObj
+	return obj
 }

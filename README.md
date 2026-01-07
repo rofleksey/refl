@@ -43,7 +43,7 @@ while condition {
 
 # Iteration
 for key, value in obj {
-    # iterate over object or string
+    # iterate over iterator, object or string
 }
 
 "6" + 7 # "67"
@@ -90,5 +90,5 @@ Refl includes several built-in modules:
 * math - Mathematical functions (abs, floor, random, etc.)
 * strings - String manipulation (upper, split, contains, etc.)
 * io - Input/output functions (print, println, printf)
-* Global functions: type(), str(), len(), clone(), eval(), panic()
+* Global functions: range(), type(), str(), len(), clone(), eval(), panic()
 * Error handling: newerr(), iserr(), errfmt()

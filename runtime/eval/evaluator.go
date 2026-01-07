@@ -12,12 +12,16 @@ type Evaluator struct {
 	ctx context.Context
 }
 
+func (e *Evaluator) Context() context.Context {
+	return e.ctx
+}
+
 func (e *Evaluator) evalGeneric(node ast.Node, env *runtime.Environment) (runtime.Object, error) {
 	switch n := node.(type) {
 	case *ast.Program:
 		return e.evalProgram(n, env)
 	case *ast.BlockStatement:
-		return e.evalBlock(n, env)
+		return e.EvalBlock(n, env)
 	case *ast.VarDeclaration:
 		return e.evalVarDeclaration(n, env)
 	case *ast.ExpressionStatement:
@@ -83,7 +87,7 @@ func (e *Evaluator) evalProgram(program *ast.Program, env *runtime.Environment) 
 	return result, nil
 }
 
-func (e *Evaluator) evalBlock(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, error) {
+func (e *Evaluator) EvalBlock(block *ast.BlockStatement, env *runtime.Environment) (runtime.Object, error) {
 	var result runtime.Object = objects.NilInstance
 	blockEnv := runtime.NewEnvironment(env)
 
@@ -141,7 +145,7 @@ func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environmen
 	}
 
 	if cond.Truthy() {
-		result, err := e.evalBlock(is.Then, env)
+		result, err := e.EvalBlock(is.Then, env)
 		if err != nil {
 			return nil, err
 		}
@@ -160,7 +164,7 @@ func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environmen
 		}
 
 		if cond.Truthy() {
-			result, err := e.evalBlock(elif.Body, env)
+			result, err := e.EvalBlock(elif.Body, env)
 			if err != nil {
 				return nil, err
 			}
@@ -174,7 +178,7 @@ func (e *Evaluator) evalIfStatement(is *ast.IfStatement, env *runtime.Environmen
 	}
 
 	if is.Else != nil {
-		result, err := e.evalBlock(is.Else, env)
+		result, err := e.EvalBlock(is.Else, env)
 		if err != nil {
 			return nil, err
 		}
@@ -208,7 +212,7 @@ func (e *Evaluator) evalWhileStatement(ws *ast.WhileStatement, env *runtime.Envi
 			break
 		}
 
-		val, err := e.evalBlock(ws.Body, env)
+		val, err := e.EvalBlock(ws.Body, env)
 		if err != nil {
 			return nil, err
 		}
@@ -260,7 +264,7 @@ func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environm
 			forEnv.Define(fs.Value, value)
 		}
 
-		val, err := e.evalBlock(fs.Body, forEnv)
+		val, err := e.EvalBlock(fs.Body, forEnv)
 		if err != nil {
 			return nil, err
 		}
@@ -357,7 +361,7 @@ func (e *Evaluator) evalArrayLiteral(al *ast.ArrayLiteral, env *runtime.Environm
 }
 
 func (e *Evaluator) evalFunctionLiteral(fl *ast.FunctionLiteral, env *runtime.Environment) (runtime.Object, error) {
-	return objects.NewFunction(fl.Parameters, fl.Body, runtime.NewEnvironment(env), e.evalBlock), nil
+	return objects.NewFunction(fl.Parameters, fl.Body, runtime.NewEnvironment(env), e), nil
 }
 
 func (e *Evaluator) evalMemberDot(md *ast.MemberDot, env *runtime.Environment) (runtime.Object, error) {

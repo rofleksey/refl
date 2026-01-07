@@ -9,22 +9,22 @@ import (
 )
 
 func builtinTypeFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
-	if len(args) != 1 {
-		return objects.NewError("type() expects exactly 1 argument"), nil
+	if len(args) < 1 {
+		return nil, runtime.NewPanic("type() expects at least 1 argument", 0, 0)
 	}
 	return objects.NewString(string(args[0].Type())), nil
 }
 
 func builtinStrFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
-	if len(args) != 1 {
-		return objects.NewError("str() expects exactly 1 argument"), nil
+	if len(args) < 1 {
+		return nil, runtime.NewPanic("str() expects at least 1 argument", 0, 0)
 	}
 	return objects.NewString(args[0].String()), nil
 }
 
 func builtinNumberFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
-	if len(args) != 1 {
-		return objects.NewError("number() expects exactly 1 argument"), nil
+	if len(args) < 1 {
+		return nil, runtime.NewPanic("number() expects at least 1 argument", 0, 0)
 	}
 
 	switch arg := args[0].(type) {
@@ -38,21 +38,21 @@ func builtinNumberFunc(_ context.Context, args []runtime.Object) (runtime.Object
 }
 
 func builtinLenFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
-	if len(args) != 1 {
-		return objects.NewError("len() expects exactly 1 argument"), nil
+	if len(args) < 1 {
+		return nil, runtime.NewPanic("len() expects at least 1 argument", 0, 0)
 	}
 
 	indexable, ok := args[0].(runtime.Indexable)
 	if !ok {
-		return objects.NewError("len() can only be called on indexable objects"), nil
+		return nil, runtime.NewPanic("len() can only be called on indexable objects", 0, 0)
 	}
 
 	return objects.NewNumber(float64(indexable.Length())), nil
 }
 
 func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
-	if len(args) != 1 {
-		return objects.NewError("clone() expects exactly 1 argument"), nil
+	if len(args) < 1 {
+		return nil, runtime.NewPanic("clone() expects at least 1 argument", 0, 0)
 	}
 
 	obj := args[0]
@@ -62,7 +62,7 @@ func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object,
 
 func builtinEvalFunc(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) < 1 {
-		return objects.NewError("refl() expects at least 1 argument"), nil
+		return nil, runtime.NewPanic("eval() expects at least 1 argument", 0, 0)
 	}
 
 	code := args[0].String()
@@ -83,8 +83,8 @@ func builtinEvalFunc(ctx context.Context, args []runtime.Object) (runtime.Object
 }
 
 func builtinRangeFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
-	if len(args) < 2 || len(args) > 3 {
-		return objects.NewError("range() expects 2 or 3 arguments"), nil
+	if len(args) < 1 {
+		return nil, runtime.NewPanic("range() expects either 2 or 3 arguments", 0, 0)
 	}
 
 	if args[0].Type() != runtime.NumberType || args[1].Type() != runtime.NumberType {

@@ -2,21 +2,20 @@ package eval
 
 import (
 	"context"
+	"fmt"
 	"refl/ast"
 	"refl/runtime"
+	eventloop "refl/runtime/eventloop"
 	"refl/runtime/objects"
 )
 
 func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
 	env.Define("math", createMathObject())
 	env.Define("strings", createStringObject())
+	env.Define("errors", createErrorsObject())
 	env.Define("io", createIoObject())
-
-	defEnvBuiltinFunc("panic", env, builtinPanicFunc)
-
-	defEnvBuiltinFunc("newerr", env, builtinNewErrFunc)
-	defEnvBuiltinFunc("errfmt", env, builtinErrFmtFunc)
-	defEnvBuiltinFunc("iserr", env, builtinIsErrFunc)
+	env.Define("time", createTimeObject())
+	env.Define("events", createEventsObject())
 
 	defEnvBuiltinFunc("type", env, builtinTypeFunc)
 	defEnvBuiltinFunc("str", env, builtinStrFunc)
@@ -31,11 +30,27 @@ func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (
 
 	env.Define("$", &globalRefObject{env: env})
 
+	eventLoop := eventloop.New(ctx)
+	ctx = context.WithValue(ctx, "event_loop", eventLoop)
+
 	evaluator := &Evaluator{
 		ctx: ctx,
 	}
 
-	return evaluator.evalProgram(program, env)
+	result, err := evaluator.evalProgram(program, env)
+	if err != nil {
+		return result, err
+	}
+
+	eventLoop.Start()
+	eventLoop.Wait()
+
+	r := eventLoop.LastPanic()
+	if r != nil {
+		return nil, runtime.NewPanic(fmt.Sprintf("Event loop panic: %v", r), 0, 0)
+	}
+
+	return result, nil
 }
 
 func defLiteralBuiltinFunc(

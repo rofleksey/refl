@@ -8,13 +8,11 @@ import (
 	"os"
 	"path/filepath"
 	"refl/ast"
-	"strings"
-	"time"
-
 	"refl/parser"
 	"refl/runtime"
 	"refl/runtime/eval"
 	"refl/runtime/objects"
+	"strings"
 )
 
 func main() {
@@ -59,6 +57,8 @@ func main() {
 	}
 
 	if result != objects.NilInstance && result != nil {
+		fmt.Println()
+		fmt.Println("=====")
 		fmt.Println(result.String())
 	}
 }
@@ -116,8 +116,10 @@ func createGlobalEnvironment() *runtime.Environment {
 }
 
 func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	//defer cancel()
+
+	ctx := context.Background()
 
 	result, err := eval.Eval(ctx, program, env)
 	if err != nil {

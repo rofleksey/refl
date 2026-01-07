@@ -68,3 +68,14 @@ func builtinPanicFunc(_ context.Context, args []runtime.Object) (runtime.Object,
 	}
 	return nil, runtime.NewPanic(msg, 0, 0)
 }
+
+func createErrorsObject() runtime.Object {
+	obj := objects.NewObject()
+
+	defLiteralBuiltinFunc("new", obj, builtinNewErrFunc)
+	defLiteralBuiltinFunc("fmt", obj, builtinErrFmtFunc)
+	defLiteralBuiltinFunc("is", obj, builtinIsErrFunc)
+	defLiteralBuiltinFunc("panic", obj, builtinPanicFunc)
+
+	return obj
+}

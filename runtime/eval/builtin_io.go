@@ -33,12 +33,12 @@ func builtinIOPrintlnFunc(_ context.Context, args []runtime.Object) (runtime.Obj
 
 func builtinIOPrintfFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) < 1 {
-		return nil, runtime.NewPanic("newerr() expects at least 1 argument", 0, 0)
+		return nil, runtime.NewPanic("printf() expects at least 1 argument", 0, 0)
 	}
 
 	patternObj, ok := args[0].(*objects.String)
 	if !ok {
-		return nil, runtime.NewPanic("newerr() first argument must be a string pattern", 0, 0)
+		return nil, runtime.NewPanic("printf() first argument must be a string pattern", 0, 0)
 	}
 
 	pattern := patternObj.Value
@@ -71,11 +71,11 @@ func builtinIOPrintfFunc(_ context.Context, args []runtime.Object) (runtime.Obje
 }
 
 func createIoObject() runtime.Object {
-	ioObj := objects.NewObject()
+	obj := objects.NewObject()
 
-	defLiteralBuiltinFunc("print", ioObj, builtinIOPrintFunc)
-	defLiteralBuiltinFunc("println", ioObj, builtinIOPrintlnFunc)
-	defLiteralBuiltinFunc("printf", ioObj, builtinIOPrintfFunc)
+	defLiteralBuiltinFunc("print", obj, builtinIOPrintFunc)
+	defLiteralBuiltinFunc("println", obj, builtinIOPrintlnFunc)
+	defLiteralBuiltinFunc("printf", obj, builtinIOPrintfFunc)
 
-	return ioObj
+	return obj
 }
