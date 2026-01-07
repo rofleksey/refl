@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"refl/ast"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"refl/parser/gen"
 
@@ -543,36 +545,37 @@ func parseNumber(s string) (float64, error) {
 
 func parseString(s string) string {
 	s = s[1 : len(s)-1]
-	result := ""
+	var result strings.Builder
 	i := 0
 	for i < len(s) {
 		if s[i] == '\\' && i+1 < len(s) {
 			switch s[i+1] {
 			case '\\':
-				result += "\\"
+				result.WriteByte('\\')
 				i += 2
 			case '"':
-				result += "\""
+				result.WriteByte('"')
 				i += 2
 			case 'n':
-				result += "\n"
+				result.WriteByte('\n')
 				i += 2
 			case 'r':
-				result += "\r"
+				result.WriteByte('\r')
 				i += 2
 			case 't':
-				result += "\t"
+				result.WriteByte('\t')
 				i += 2
 			default:
-				result += string(s[i])
+				result.WriteByte(s[i])
 				i++
 			}
 		} else {
-			result += string(s[i])
-			i++
+			r, size := utf8.DecodeRuneInString(s[i:])
+			result.WriteRune(r)
+			i += size
 		}
 	}
-	return result
+	return result.String()
 }
 
 func parseRawString(s string) string {
