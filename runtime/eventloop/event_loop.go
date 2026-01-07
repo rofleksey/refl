@@ -6,9 +6,18 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Task func()
+
+type EventCallback func(ctx context.Context, event string, data any)
+
+type EventHandler struct {
+	ID       uuid.UUID
+	Callback EventCallback
+}
 
 var noop = func() {}
 
@@ -67,7 +76,11 @@ type EventLoop struct {
 	immediateTaskChan chan immediateTask
 	delayedTasks      *delayedTaskHeap
 	delayedTasksMu    sync.Mutex
-	newDelayedTask    chan struct{}
+
+	triggerChan chan struct{}
+
+	handlers   map[string][]EventHandler
+	handlersMu sync.Mutex
 
 	wg sync.WaitGroup
 
@@ -88,8 +101,56 @@ func New(ctx context.Context) *EventLoop {
 		cancel:            cancel,
 		immediateTaskChan: make(chan immediateTask, 32),
 		delayedTasks:      &delayedTaskHeap{},
-		newDelayedTask:    make(chan struct{}, 1),
+		triggerChan:       make(chan struct{}, 1),
+		handlers:          make(map[string][]EventHandler),
 	}
+}
+
+func (e *EventLoop) RegisterCallback(event string, callback EventCallback) func() {
+	e.handlersMu.Lock()
+	defer e.handlersMu.Unlock()
+
+	handlerID := uuid.New()
+
+	e.handlers[event] = append(e.handlers[event], EventHandler{
+		ID:       handlerID,
+		Callback: callback,
+	})
+
+	select {
+	case e.triggerChan <- struct{}{}:
+	default:
+	}
+
+	return func() {
+		e.unregisterHandler(event, handlerID)
+	}
+}
+
+func (e *EventLoop) unregisterHandler(event string, handlerID uuid.UUID) {
+	e.handlersMu.Lock()
+	defer e.handlersMu.Unlock()
+
+	select {
+	case e.triggerChan <- struct{}{}:
+	default:
+	}
+
+	if len(e.handlers[event]) == 1 {
+		delete(e.handlers, event)
+		return
+	}
+
+	newHandlers := make([]EventHandler, 0, len(e.handlers[event]))
+	for _, h := range e.handlers[event] {
+		if h.ID == handlerID {
+			continue
+		}
+
+		newHandlers = append(newHandlers, h)
+	}
+
+	e.handlers[event] = newHandlers
 }
 
 func (e *EventLoop) Enqueue(task Task) func() {
@@ -150,7 +211,7 @@ func (e *EventLoop) Schedule(task Task, atTime time.Time) func() {
 		e.delayedTasksMu.Unlock()
 
 		select {
-		case e.newDelayedTask <- struct{}{}:
+		case e.triggerChan <- struct{}{}:
 		default:
 		}
 
@@ -192,7 +253,7 @@ func (e *EventLoop) stop() {
 	e.loopMu.Unlock()
 
 	close(e.immediateTaskChan)
-	close(e.newDelayedTask)
+	close(e.triggerChan)
 }
 
 func (e *EventLoop) runLoop() {
@@ -215,7 +276,13 @@ func (e *EventLoop) runLoop() {
 		}
 
 		if nextDelay < 0 {
-			return
+			e.handlersMu.Lock()
+			handleCount := len(e.handlers)
+			e.handlersMu.Unlock()
+
+			if handleCount == 0 {
+				return
+			}
 		}
 
 		timer = time.NewTimer(nextDelay)
@@ -240,10 +307,7 @@ func (e *EventLoop) runLoop() {
 				return
 			}
 
-		case <-e.newDelayedTask:
-			if timer != nil {
-				timer.Stop()
-			}
+		case <-e.triggerChan:
 		}
 	}
 }

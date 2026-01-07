@@ -12,21 +12,17 @@ type Function struct {
 	Parameters []string
 	Body       *ast.BlockStatement
 	Env        *runtime.Environment
-
-	evaluator Evaluator
 }
 
 func NewFunction(
 	params []string,
 	body *ast.BlockStatement,
 	env *runtime.Environment,
-	evaluator Evaluator,
 ) *Function {
 	result := &Function{
 		Parameters: params,
 		Body:       body,
 		Env:        runtime.NewEnvironment(env),
-		evaluator:  evaluator,
 	}
 
 	result.ID = fmt.Sprintf("%p", result)
@@ -44,6 +40,11 @@ func (f *Function) Equal(other runtime.Object) bool {
 func (f *Function) Clone() runtime.Object { return f }
 
 func (f *Function) Call(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
+	evaluator, ok := ctx.Value("evaluator").(Evaluator)
+	if !ok {
+		return nil, runtime.NewPanic("evaluator not found in context", 0, 0)
+	}
+
 	funcEnv := runtime.NewEnvironment(f.Env)
 
 	for i, param := range f.Parameters {
@@ -60,7 +61,7 @@ func (f *Function) Call(ctx context.Context, args []runtime.Object) (runtime.Obj
 	}
 	funcEnv.Define("args", argsObj)
 
-	return f.evaluator.EvalBlock(f.Body, funcEnv)
+	return evaluator.EvalBlock(f.Body, funcEnv)
 }
 
 func (f *Function) Not() runtime.Object {

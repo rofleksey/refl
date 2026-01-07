@@ -5,17 +5,28 @@ import (
 	"fmt"
 	"refl/ast"
 	"refl/runtime"
-	eventloop "refl/runtime/eventloop"
+	"refl/runtime/eventloop"
 	"refl/runtime/objects"
 )
 
-func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
+func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment, opts ...Option) (runtime.Object, error) {
+	var options Options
+
+	for _, opt := range opts {
+		opt.Apply(&options)
+	}
+
+	ctx = context.WithValue(ctx, "options", options)
+
 	env.Define("math", createMathObject())
 	env.Define("strings", createStringObject())
 	env.Define("errors", createErrorsObject())
 	env.Define("io", createIoObject())
 	env.Define("time", createTimeObject())
-	env.Define("events", createEventsObject())
+
+	if !options.disableEvents {
+		env.Define("events", createEventsObject())
+	}
 
 	defEnvBuiltinFunc("type", env, builtinTypeFunc)
 	defEnvBuiltinFunc("str", env, builtinStrFunc)
@@ -26,28 +37,35 @@ func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (
 	defEnvBuiltinFunc("range", env, builtinRangeFunc)
 
 	defEnvBuiltinFunc("clone", env, builtinCloneFunc)
-	defEnvBuiltinFunc("eval", env, builtinEvalFunc)
+
+	var eventLoop *eventloop.EventLoop
+
+	if !options.disableEvents {
+		eventLoop = eventloop.New(ctx)
+		ctx = context.WithValue(ctx, "event_loop", eventLoop)
+		defEnvBuiltinFunc("eval", env, builtinEvalFunc)
+	}
 
 	env.Define("$", &globalRefObject{env: env})
 
-	eventLoop := eventloop.New(ctx)
-	ctx = context.WithValue(ctx, "event_loop", eventLoop)
+	evaluator := &Evaluator{}
 
-	evaluator := &Evaluator{
-		ctx: ctx,
-	}
+	ctx = context.WithValue(ctx, "evaluator", evaluator)
+	evaluator.ctx = ctx
 
 	result, err := evaluator.evalProgram(program, env)
 	if err != nil {
 		return result, err
 	}
 
-	eventLoop.Start()
-	eventLoop.Wait()
+	if eventLoop != nil {
+		eventLoop.Start()
+		eventLoop.Wait()
 
-	r := eventLoop.LastPanic()
-	if r != nil {
-		return nil, runtime.NewPanic(fmt.Sprintf("Event loop panic: %v", r), 0, 0)
+		r := eventLoop.LastPanic()
+		if r != nil {
+			return nil, runtime.NewPanic(fmt.Sprintf("Event loop panic: %v", r), 0, 0)
+		}
 	}
 
 	return result, nil

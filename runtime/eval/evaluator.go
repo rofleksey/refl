@@ -361,7 +361,7 @@ func (e *Evaluator) evalArrayLiteral(al *ast.ArrayLiteral, env *runtime.Environm
 }
 
 func (e *Evaluator) evalFunctionLiteral(fl *ast.FunctionLiteral, env *runtime.Environment) (runtime.Object, error) {
-	return objects.NewFunction(fl.Parameters, fl.Body, runtime.NewEnvironment(env), e), nil
+	return objects.NewFunction(fl.Parameters, fl.Body, runtime.NewEnvironment(env)), nil
 }
 
 func (e *Evaluator) evalMemberDot(md *ast.MemberDot, env *runtime.Environment) (runtime.Object, error) {

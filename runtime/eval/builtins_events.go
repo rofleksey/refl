@@ -9,6 +9,8 @@ import (
 )
 
 func builtinScheduleFunc(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
+	eventLoop := ctx.Value("event_loop").(*eventloop.EventLoop)
+
 	if len(args) < 2 {
 		return nil, runtime.NewPanic("schedule() expects at least 2 argument", 0, 0)
 	}
@@ -24,10 +26,8 @@ func builtinScheduleFunc(ctx context.Context, args []runtime.Object) (runtime.Ob
 	}
 
 	otherArgs := args[2:]
-
 	t := time.UnixMilli(int64(millis.Value))
 
-	eventLoop := ctx.Value("event_loop").(*eventloop.EventLoop)
 	cancelFunc := eventLoop.Schedule(func() {
 		_, err := fn.Call(ctx, otherArgs)
 		if err != nil {
