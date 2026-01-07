@@ -6,7 +6,7 @@ A simple scripting language interpreter written in Go.
 
 Refl is an interpreted language, featuring:
 
-- **Simple Types**: `number`, `string`, `object`, `function`, `error`, `nil`,
+- **Simple Types**: `number`, `string`, `object`, `function`, `iterator`, `error`, `nil`
 - **Dynamic Typing**: No type declarations needed
 - **First-Class Functions**: Functions are values that support closures
 - **No arrays**: Objects keys can be of any value except `nil`
