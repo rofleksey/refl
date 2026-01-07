@@ -8,24 +8,26 @@ import (
 )
 
 func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
-	env.Define("math", createMathObject(ctx))
-	env.Define("strings", createStringObject(ctx))
-	env.Define("io", createIoObject(ctx))
+	env.Define("math", createMathObject())
+	env.Define("strings", createStringObject())
+	env.Define("io", createIoObject())
 
-	defEnvBuiltinFunc(ctx, "panic", env, builtinPanicFunc)
+	defEnvBuiltinFunc("panic", env, builtinPanicFunc)
 
-	defEnvBuiltinFunc(ctx, "newerr", env, builtinNewErrFunc)
-	defEnvBuiltinFunc(ctx, "errfmt", env, builtinErrFmtFunc)
-	defEnvBuiltinFunc(ctx, "iserr", env, builtinIsErrFunc)
+	defEnvBuiltinFunc("newerr", env, builtinNewErrFunc)
+	defEnvBuiltinFunc("errfmt", env, builtinErrFmtFunc)
+	defEnvBuiltinFunc("iserr", env, builtinIsErrFunc)
 
-	defEnvBuiltinFunc(ctx, "type", env, builtinTypeFunc)
-	defEnvBuiltinFunc(ctx, "str", env, builtinStrFunc)
-	defEnvBuiltinFunc(ctx, "number", env, builtinNumberFunc)
+	defEnvBuiltinFunc("type", env, builtinTypeFunc)
+	defEnvBuiltinFunc("str", env, builtinStrFunc)
+	defEnvBuiltinFunc("number", env, builtinNumberFunc)
 
-	defEnvBuiltinFunc(ctx, "len", env, builtinLenFunc)
+	defEnvBuiltinFunc("len", env, builtinLenFunc)
 
-	defEnvBuiltinFunc(ctx, "clone", env, builtinCloneFunc)
-	defEnvBuiltinFunc(ctx, "eval", env, builtinEvalFunc)
+	defEnvBuiltinFunc("range", env, builtinRangeFunc)
+
+	defEnvBuiltinFunc("clone", env, builtinCloneFunc)
+	defEnvBuiltinFunc("eval", env, builtinEvalFunc)
 
 	env.Define("$", &globalRefObject{env: env})
 
@@ -37,27 +39,17 @@ func Eval(ctx context.Context, program *ast.Program, env *runtime.Environment) (
 }
 
 func defLiteralBuiltinFunc(
-	ctx context.Context,
 	name string,
 	obj *objects.ReflObject,
 	fn func(_ context.Context, args []runtime.Object) (runtime.Object, error),
 ) {
-	obj.SetLiteral(name, &builtinFunction{
-		ctx:  ctx,
-		name: name,
-		fn:   fn,
-	})
+	obj.SetLiteral(name, objects.NewWrapperFunction(fn))
 }
 
 func defEnvBuiltinFunc(
-	ctx context.Context,
 	name string,
 	env *runtime.Environment,
 	fn func(_ context.Context, args []runtime.Object) (runtime.Object, error),
 ) {
-	env.Define(name, &builtinFunction{
-		ctx:  ctx,
-		name: name,
-		fn:   fn,
-	})
+	env.Define(name, objects.NewWrapperFunction(fn))
 }

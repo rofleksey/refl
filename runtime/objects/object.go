@@ -1,6 +1,7 @@
 package objects
 
 import (
+	"context"
 	"fmt"
 	"iter"
 	"refl/runtime"
@@ -144,6 +145,11 @@ func (o *ReflObject) Length() int {
 }
 
 func (o *ReflObject) Iterator() iter.Seq2[runtime.Object, runtime.Object] {
+	customIteratorObj, _ := o.Get(NewString("__iter"))
+	if customIterFunc, ok := customIteratorObj.(*Function); ok {
+		return o.customIterator(customIterFunc)
+	}
+
 	return func(yield func(runtime.Object, runtime.Object) bool) {
 		if len(o.numFields) > 0 {
 			keys := make([]float64, 0, len(o.numFields))
@@ -155,6 +161,7 @@ func (o *ReflObject) Iterator() iter.Seq2[runtime.Object, runtime.Object] {
 			for _, key := range keys {
 				keyObj := NewNumber(key)
 				value := o.numFields[key]
+
 				if !yield(keyObj, value) {
 					return
 				}
@@ -165,6 +172,23 @@ func (o *ReflObject) Iterator() iter.Seq2[runtime.Object, runtime.Object] {
 			if !yield(carriage.Key, carriage.Value) {
 				return
 			}
+		}
+	}
+}
+
+func (o *ReflObject) customIterator(customIterFunc *Function) iter.Seq2[runtime.Object, runtime.Object] {
+	return func(yield func(runtime.Object, runtime.Object) bool) {
+		yieldWrapper := NewWrapperFunction(func(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
+			if len(args) < 2 {
+				return nil, runtime.NewPanic("__iter expects exactly 2 arguments", 0, 0)
+			}
+
+			return NewBoolean(yield(args[0], args[1])), nil
+		})
+
+		_, err := customIterFunc.Call(context.Background(), []runtime.Object{o, yieldWrapper})
+		if err != nil {
+			panic("__iter call failed: " + err.Error())
 		}
 	}
 }

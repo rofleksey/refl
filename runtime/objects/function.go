@@ -1,6 +1,7 @@
 package objects
 
 import (
+	"context"
 	"fmt"
 	"refl/ast"
 	"refl/runtime"
@@ -42,7 +43,7 @@ func (f *Function) Equal(other runtime.Object) bool {
 }
 func (f *Function) Clone() runtime.Object { return f }
 
-func (f *Function) Call(args []runtime.Object) (runtime.Object, error) {
+func (f *Function) Call(_ context.Context, args []runtime.Object) (runtime.Object, error) {
 	funcEnv := runtime.NewEnvironment(f.Env)
 
 	for i, param := range f.Parameters {

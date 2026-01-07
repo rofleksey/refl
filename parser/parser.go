@@ -38,7 +38,7 @@ func (p *Parser) Parse(code string) (resultP *ast.Program, resultErr error) {
 	tree := antlrParser.Program()
 
 	if len(p.errors) > 0 {
-		return nil, errors.Join(p.errors...)
+		return nil, p.errors[0]
 	}
 
 	visitor := newReflVisitor(p)
@@ -54,7 +54,7 @@ func (p *Parser) error(msg string) {
 }
 
 func (p *Parser) SyntaxError(recognizer antlr.Recognizer, offendingSymbol any, line, column int, msg string, e antlr.RecognitionException) {
-	p.error(msg)
+	p.error(fmt.Sprintf("%s at line %d, column %d, %s", msg, line, column, offendingSymbol))
 }
 
 func (p *Parser) ReportAmbiguity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex int, exact bool, ambigAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {

@@ -8,47 +8,23 @@ import (
 	"refl/runtime/objects"
 )
 
-type builtinFunction struct {
-	ctx  context.Context
-	name string
-	fn   func(context.Context, []runtime.Object) (runtime.Object, error)
-}
-
-func (f *builtinFunction) Type() runtime.ObjectType { return runtime.FunctionType }
-func (f *builtinFunction) String() string           { return "function" }
-func (f *builtinFunction) Truthy() bool             { return true }
-func (f *builtinFunction) Equal(other runtime.Object) bool {
-	return f == other
-}
-func (f *builtinFunction) Clone() runtime.Object { return f }
-
-func (f *builtinFunction) Call(args []runtime.Object) (runtime.Object, error) {
-	return f.fn(f.ctx, args)
-}
-func (f *builtinFunction) Not() runtime.Object {
-	return objects.NewBoolean(!f.Truthy())
-}
-func (f *builtinFunction) HashKey() runtime.HashKey {
-	return runtime.HashKey("builtin_" + f.name)
-}
-
 func builtinTypeFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) != 1 {
-		return nil, runtime.NewPanic("type() expects exactly 1 argument", 0, 0)
+		return objects.NewError("type() expects exactly 1 argument"), nil
 	}
 	return objects.NewString(string(args[0].Type())), nil
 }
 
 func builtinStrFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) != 1 {
-		return nil, runtime.NewPanic("str() expects exactly 1 argument", 0, 0)
+		return objects.NewError("str() expects exactly 1 argument"), nil
 	}
 	return objects.NewString(args[0].String()), nil
 }
 
 func builtinNumberFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) != 1 {
-		return nil, runtime.NewPanic("number() expects exactly 1 argument", 0, 0)
+		return objects.NewError("number() expects exactly 1 argument"), nil
 	}
 
 	switch arg := args[0].(type) {
@@ -63,12 +39,12 @@ func builtinNumberFunc(_ context.Context, args []runtime.Object) (runtime.Object
 
 func builtinLenFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) != 1 {
-		return nil, runtime.NewPanic("len() expects exactly 1 argument", 0, 0)
+		return objects.NewError("len() expects exactly 1 argument"), nil
 	}
 
 	indexable, ok := args[0].(runtime.Indexable)
 	if !ok {
-		return nil, runtime.NewPanic("len() can only be called on indexable objects", 0, 0)
+		return objects.NewError("len() can only be called on indexable objects"), nil
 	}
 
 	return objects.NewNumber(float64(indexable.Length())), nil
@@ -76,7 +52,7 @@ func builtinLenFunc(_ context.Context, args []runtime.Object) (runtime.Object, e
 
 func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) != 1 {
-		return nil, runtime.NewPanic("clone() expects exactly 1 argument", 0, 0)
+		return objects.NewError("clone() expects exactly 1 argument"), nil
 	}
 
 	obj := args[0]
@@ -86,7 +62,7 @@ func builtinCloneFunc(_ context.Context, args []runtime.Object) (runtime.Object,
 
 func builtinEvalFunc(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
 	if len(args) < 1 {
-		return nil, runtime.NewPanic("refl() expects at least 1 argument", 0, 0)
+		return objects.NewError("refl() expects at least 1 argument"), nil
 	}
 
 	code := args[0].String()
@@ -104,6 +80,54 @@ func builtinEvalFunc(ctx context.Context, args []runtime.Object) (runtime.Object
 	}
 
 	return result, nil
+}
+
+func builtinRangeFunc(_ context.Context, args []runtime.Object) (runtime.Object, error) {
+	if len(args) < 2 || len(args) > 3 {
+		return objects.NewError("range() expects 2 or 3 arguments"), nil
+	}
+
+	if args[0].Type() != runtime.NumberType || args[1].Type() != runtime.NumberType {
+		return objects.NewError("range() can only be called on numbers"), nil
+	}
+
+	start := args[0].(*objects.Number).Value
+	finish := args[1].(*objects.Number).Value
+	step := 1.0
+
+	if len(args) == 3 {
+		if args[2].Type() != runtime.NumberType {
+			return objects.NewError("range() can only be called on numbers"), nil
+		}
+
+		step = args[2].(*objects.Number).Value
+		if step == 0 {
+			return objects.NewError("step is zero"), nil
+		}
+	}
+
+	return objects.NewIterator(func(yield func(runtime.Object, runtime.Object) bool) {
+		i := 0.0
+
+		if step > 0 {
+			for num := start; num < finish; num += step {
+				if !yield(objects.NewNumber(i), objects.NewNumber(num)) {
+					break
+				}
+
+				i++
+			}
+		} else {
+			for num := start; num > finish; num += step {
+				if !yield(objects.NewNumber(i), objects.NewNumber(num)) {
+					break
+				}
+
+				i++
+			}
+		}
+
+	}), nil
 }
 
 type globalRefObject struct {

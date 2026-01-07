@@ -70,12 +70,12 @@ func builtinIOPrintfFunc(_ context.Context, args []runtime.Object) (runtime.Obje
 	return objects.NilInstance, nil
 }
 
-func createIoObject(ctx context.Context) runtime.Object {
+func createIoObject() runtime.Object {
 	ioObj := objects.NewObject()
 
-	defLiteralBuiltinFunc(ctx, "print", ioObj, builtinIOPrintFunc)
-	defLiteralBuiltinFunc(ctx, "println", ioObj, builtinIOPrintlnFunc)
-	defLiteralBuiltinFunc(ctx, "printf", ioObj, builtinIOPrintfFunc)
+	defLiteralBuiltinFunc("print", ioObj, builtinIOPrintFunc)
+	defLiteralBuiltinFunc("println", ioObj, builtinIOPrintlnFunc)
+	defLiteralBuiltinFunc("printf", ioObj, builtinIOPrintfFunc)
 
 	return ioObj
 }

@@ -19,7 +19,7 @@ func NewError(text string) *UserError {
 
 func (e *UserError) Type() runtime.ObjectType { return runtime.ErrorType }
 func (e *UserError) String() string           { return e.text }
-func (e *UserError) Truthy() bool             { return true }
+func (e *UserError) Truthy() bool             { return false }
 func (e *UserError) Equal(other runtime.Object) bool {
 	return e == other
 }
@@ -66,7 +66,7 @@ func (e *UserError) GreaterThanEqual(other runtime.Object) (runtime.Object, erro
 }
 
 func (e *UserError) Not() runtime.Object {
-	return &Number{Value: 0}
+	return &Number{Value: 1}
 }
 
 func (e *UserError) HashKey() runtime.HashKey {

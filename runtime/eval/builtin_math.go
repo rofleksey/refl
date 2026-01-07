@@ -134,18 +134,18 @@ func builtinMathRandomFunc(_ context.Context, args []runtime.Object) (runtime.Ob
 	return objects.NewNumber(rand.Float64()), nil
 }
 
-func createMathObject(ctx context.Context) runtime.Object {
+func createMathObject() runtime.Object {
 	mathObj := objects.NewObject()
 
-	defLiteralBuiltinFunc(ctx, "abs", mathObj, builtinMathAbsFunc)
-	defLiteralBuiltinFunc(ctx, "floor", mathObj, builtinMathFloorFunc)
-	defLiteralBuiltinFunc(ctx, "ceil", mathObj, builtinMathCeilFunc)
-	defLiteralBuiltinFunc(ctx, "round", mathObj, builtinMathRoundFunc)
-	defLiteralBuiltinFunc(ctx, "sqrt", mathObj, builtinMathSqrtFunc)
-	defLiteralBuiltinFunc(ctx, "pow", mathObj, builtinMathPowFunc)
-	defLiteralBuiltinFunc(ctx, "max", mathObj, builtinMathMaxFunc)
-	defLiteralBuiltinFunc(ctx, "min", mathObj, builtinMathMinFunc)
-	defLiteralBuiltinFunc(ctx, "random", mathObj, builtinMathRandomFunc)
+	defLiteralBuiltinFunc("abs", mathObj, builtinMathAbsFunc)
+	defLiteralBuiltinFunc("floor", mathObj, builtinMathFloorFunc)
+	defLiteralBuiltinFunc("ceil", mathObj, builtinMathCeilFunc)
+	defLiteralBuiltinFunc("round", mathObj, builtinMathRoundFunc)
+	defLiteralBuiltinFunc("sqrt", mathObj, builtinMathSqrtFunc)
+	defLiteralBuiltinFunc("pow", mathObj, builtinMathPowFunc)
+	defLiteralBuiltinFunc("max", mathObj, builtinMathMaxFunc)
+	defLiteralBuiltinFunc("min", mathObj, builtinMathMinFunc)
+	defLiteralBuiltinFunc("random", mathObj, builtinMathRandomFunc)
 
 	mathObj.SetLiteral("PI", objects.NewNumber(math.Pi))
 	mathObj.SetLiteral("E", objects.NewNumber(math.E))

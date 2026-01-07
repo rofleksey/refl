@@ -106,7 +106,7 @@ func parseSource(source string) (*ast.Program, error) {
 	p := parser.New()
 	program, err := p.Parse(source)
 	if err != nil {
-		return nil, fmt.Errorf("%v\nSource: %s", err, source)
+		return nil, err
 	}
 	return program, nil
 }

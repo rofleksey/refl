@@ -21,7 +21,7 @@ x = 2  # global assignment
 
 # No arrays, only objects
 var obj = {a: 1, "b": 2}
-var arr = {1, "two", 3}  # array syntax sugar
+var arr = {1, "two", 3}  # "array" syntax sugar, 0-indexed
 
 # All functions are anonymous
 var add = fun(a, b) { return a + b }

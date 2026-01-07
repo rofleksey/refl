@@ -1,6 +1,9 @@
 package runtime
 
-import "iter"
+import (
+	"context"
+	"iter"
+)
 
 type ObjectType string
 
@@ -10,6 +13,7 @@ const (
 	StringType   ObjectType = "string"
 	ObjectType_  ObjectType = "object"
 	FunctionType ObjectType = "function"
+	IteratorType ObjectType = "iterator"
 	ErrorType    ObjectType = "error"
 
 	BreakSignal    ObjectType = "break"
@@ -40,5 +44,5 @@ type Iterable interface {
 }
 
 type Callable interface {
-	Call(args []Object) (Object, error)
+	Call(ctx context.Context, args []Object) (Object, error)
 }

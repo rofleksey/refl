@@ -228,7 +228,13 @@ func (e *Evaluator) evalWhileStatement(ws *ast.WhileStatement, env *runtime.Envi
 	return result, nil
 }
 
-func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environment) (runtime.Object, error) {
+func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environment) (funcRes runtime.Object, funcErr error) {
+	defer func() {
+		if r := recover(); r != nil {
+			funcErr = runtime.NewPanic(fmt.Sprintf("iteration error: %v", r), fs.Pos.Line, fs.Pos.Column)
+		}
+	}()
+
 	obj, err := e.evalGeneric(fs.Object, env)
 	if err != nil {
 		return nil, err
@@ -242,6 +248,11 @@ func (e *Evaluator) evalForStatement(fs *ast.ForStatement, env *runtime.Environm
 	var result runtime.Object = objects.NilInstance
 
 	for key, value := range iterable.Iterator() {
+		select {
+		case <-e.ctx.Done():
+			return nil, runtime.NewPanic("context cancelled", 0, 0)
+		default:
+		}
 
 		forEnv := runtime.NewEnvironment(env)
 		forEnv.Define(fs.Key, key)
@@ -411,7 +422,7 @@ func (e *Evaluator) evalFunctionCall(fc *ast.FunctionCall, env *runtime.Environm
 	}
 
 	// Call the function
-	result, err := callable.Call(args)
+	result, err := callable.Call(e.ctx, args)
 	if err != nil {
 		return nil, err
 	}
@@ -464,7 +475,7 @@ func (e *Evaluator) evalMethodCall(mc *ast.MethodCall, env *runtime.Environment)
 
 	// Call method with object as first argument
 	allArgs := append([]runtime.Object{obj}, args...)
-	result, err := callable.Call(allArgs)
+	result, err := callable.Call(e.ctx, allArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -501,6 +512,14 @@ func (e *Evaluator) evalBinaryExpression(be *ast.BinaryExpression, env *runtime.
 	left, err := e.evalGeneric(be.Left, env)
 	if err != nil {
 		return nil, err
+	}
+
+	if be.Operator == "||" && left.Truthy() {
+		return left, nil
+	}
+
+	if be.Operator == "&&" && !left.Truthy() {
+		return left, nil
 	}
 
 	right, err := e.evalGeneric(be.Right, env)
@@ -568,14 +587,8 @@ func (e *Evaluator) evalBinaryExpression(be *ast.BinaryExpression, env *runtime.
 	case "!=":
 		return objects.NewBoolean(!left.Equal(right)), nil
 	case "&&":
-		if !left.Truthy() {
-			return left, nil
-		}
 		return right, nil
 	case "||":
-		if left.Truthy() {
-			return left, nil
-		}
 		return right, nil
 	default:
 		return nil, runtime.NewPanic(fmt.Sprintf("unknown operator: %s", be.Operator), be.Pos.Line, be.Pos.Column)
