@@ -13,7 +13,6 @@ const (
 	StringType   ObjectType = "string"
 	ObjectType_  ObjectType = "object"
 	FunctionType ObjectType = "function"
-	IteratorType ObjectType = "iterator"
 	ErrorType    ObjectType = "error"
 
 	BreakSignal    ObjectType = "break"

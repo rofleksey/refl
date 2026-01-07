@@ -21,7 +21,7 @@ func NewIterator(iter iter.Seq2[runtime.Object, runtime.Object]) *Iterator {
 	return result
 }
 
-func (it *Iterator) Type() runtime.ObjectType { return runtime.IteratorType }
+func (it *Iterator) Type() runtime.ObjectType { return runtime.ObjectType_ }
 func (it *Iterator) String() string           { return "iterator" }
 func (it *Iterator) Truthy() bool             { return true }
 func (it *Iterator) Equal(other runtime.Object) bool {

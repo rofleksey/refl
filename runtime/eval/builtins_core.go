@@ -106,12 +106,15 @@ func builtinReflFunc(ctx context.Context, args []runtime.Object) (runtime.Object
 	}
 
 	options := ctx.Value("options").(Options)
+
+	ctx, cancel := context.WithCancel(ctx)
 	evaluator := New(ctx, nil, runtime.NewEnvironment(nil), OptionSetOptions{options})
 
-	promise := objects.NewPromise()
+	promise := objects.NewPromise(cancel)
 	unlock := originalEventLoop.RegisterLock()
 
 	go func() {
+		defer cancel()
 		defer unlock()
 
 		result, err := evaluator.runCoroutine(fn, reflArgs)

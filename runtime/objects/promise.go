@@ -18,7 +18,8 @@ const (
 type Promise struct {
 	id string
 
-	state PromiseState
+	state  PromiseState
+	cancel context.CancelFunc
 
 	result runtime.Object
 	err    error
@@ -30,9 +31,10 @@ type Promise struct {
 	mu sync.RWMutex
 }
 
-func NewPromise() *Promise {
+func NewPromise(cancel context.CancelFunc) *Promise {
 	result := &Promise{
 		state:   PromiseStatePending,
+		cancel:  cancel,
 		then:    make([]*Function, 0),
 		catch:   make([]*Function, 0),
 		finally: make([]*Function, 0),
@@ -60,6 +62,14 @@ func (p *Promise) Get(key runtime.Object) (runtime.Object, error) {
 	keyStr := key.String()
 
 	switch keyStr {
+	case "cancel":
+		return NewWrapperFunction(func(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
+			if p.cancel != nil {
+				p.cancel()
+			}
+
+			return NilInstance, nil
+		}), nil
 	case "then":
 		return NewWrapperFunction(func(ctx context.Context, args []runtime.Object) (runtime.Object, error) {
 			if len(args) != 1 {
