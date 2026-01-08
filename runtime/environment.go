@@ -9,7 +9,7 @@ type Variable struct {
 type Environment struct {
 	globalEnv *Environment
 	parent    *Environment
-	values    map[string]*Variable
+	values    map[string]*Variable // not thread safe
 }
 
 func NewEnvironment(parent *Environment) *Environment {

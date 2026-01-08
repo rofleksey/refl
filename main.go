@@ -13,6 +13,7 @@ import (
 	"refl/runtime/eval"
 	"refl/runtime/objects"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -116,10 +117,8 @@ func createGlobalEnvironment() *runtime.Environment {
 }
 
 func executeProgram(program *ast.Program, env *runtime.Environment) (runtime.Object, error) {
-	//ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	//defer cancel()
-
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	evaluator := eval.New(ctx, program, env)
 	result, err := evaluator.Run()

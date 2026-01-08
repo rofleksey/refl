@@ -467,7 +467,13 @@ func (v *ReflVisitor) VisitNumberLiteral(ctx *gen.NumberLiteralContext) any {
 	value, err := parseNumber(ctx.NUMBER().GetText())
 	if err != nil {
 		v.parser.error(err.Error())
-		return &ast.NumberLiteral{Value: 0}
+		return &ast.NumberLiteral{
+			Pos: ast.Position{
+				Line:   ctx.GetStart().GetLine(),
+				Column: ctx.GetStart().GetColumn(),
+			},
+			Value: 0,
+		}
 	}
 
 	return &ast.NumberLiteral{
